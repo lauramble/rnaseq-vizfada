@@ -27,7 +27,6 @@
  * - Evan Floden <evanfloden@gmail.com>
  */
 
-
 /*
  * Default pipeline parameters. They can be overriden on the command line eg.
  * given `params.foo` specify on the run command line `--foo some_value`.
@@ -46,9 +45,8 @@ log.info """\
  outdir       : ${params.outdir}
  """
 
-// note: import must be after params def  
-importLibrary 'rnaseq.nf'
-
+// import modules
+require 'rnaseq.nf', params: [params], form
 
 transcriptome_file = file(params.transcriptome)
 multiqc_file = file(params.multiqc)
@@ -58,7 +56,7 @@ Channel
     .fromFilePairs( params.reads, checkIfExists: true )
     .into { read_pairs_ch; read_pairs2_ch }
 
-index(transcriptome_file)
+lib1.index(transcriptome_file)
     .quant(read_pairs_ch)
     .mix(fastqc(read_pairs2_ch))
     .collect()
