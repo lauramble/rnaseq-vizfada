@@ -46,21 +46,23 @@ log.info """\
  """
 
 // import modules
-require 'rnaseq.nf', params: [params], form
+require 'rnaseq.nf', params: params
 
 transcriptome_file = file(params.transcriptome)
 multiqc_file = file(params.multiqc)
+read_pairs_ch = Channel.fromFilePairs( params.reads, checkIfExists: true )
 
+workflow {
+    INDEX(transcriptome_file)
 
-Channel
-    .fromFilePairs( params.reads, checkIfExists: true )
-    .into { read_pairs_ch; read_pairs2_ch }
+    FASTQC(read_pairs_ch)
 
-lib1.index(transcriptome_file)
-    .quant(read_pairs_ch)
-    .mix(fastqc(read_pairs2_ch))
-    .collect()
-    .multiqc(multiqc_file)
+    QUANT(INDEX.output, read_pairs_ch)
+
+    MULTIQC( 
+        QUANT.output.mix(FASTQC.output).collect(),
+        multiqc_file )
+}
 
 workflow.onComplete {
 	println ( workflow.success ? "\nDone! Open the following report in your browser --> $params.outdir/multiqc_report.html\n" : "Oops .. something went wrong" )
