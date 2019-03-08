@@ -27,6 +27,11 @@
  * - Evan Floden <evanfloden@gmail.com>
  */
 
+/* 
+ * enables modules 
+ */
+nextflow.enable.modules = true
+
 /*
  * Default pipeline parameters. They can be overriden on the command line eg.
  * given `params.foo` specify on the run command line `--foo some_value`.
@@ -46,11 +51,12 @@ log.info """\
  """
 
 // import modules
-require 'rnaseq.nf', params: params
+include 'rnaseq' params(params)
 
 transcriptome_file = file(params.transcriptome)
 multiqc_file = file(params.multiqc)
 read_pairs_ch = Channel.fromFilePairs( params.reads, checkIfExists: true )
+
 
 workflow {
     INDEX(transcriptome_file)
