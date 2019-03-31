@@ -30,7 +30,7 @@
 /* 
  * enables modules 
  */
-nextflow.enable.modules = true
+nextflow.preview.dsl = 2
 
 /*
  * Default pipeline parameters. They can be overriden on the command line eg.
@@ -51,7 +51,7 @@ log.info """\
  """
 
 // import modules
-include 'rnaseq' params(params)
+include 'modules/rnaseq' params(params)
 
 transcriptome_file = file(params.transcriptome)
 multiqc_file = file(params.multiqc)
