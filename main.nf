@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018, Centre for Genomic Regulation (CRG) and the authors.
+ * Copyright (c) 2013-2019, Centre for Genomic Regulation (CRG) and the authors.
  *
  *   This file is part of 'RNASEQ-NF'.
  *
@@ -57,19 +57,22 @@ transcriptome_file = file(params.transcriptome)
 multiqc_file = file(params.multiqc)
 read_pairs_ch = Channel.fromFilePairs( params.reads, checkIfExists: true )
 
+/* 
+ * main script flow
+ */
+INDEX(transcriptome_file)
 
-workflow {
-    INDEX(transcriptome_file)
+FASTQC(read_pairs_ch)
 
-    FASTQC(read_pairs_ch)
+QUANT(INDEX.out, read_pairs_ch)
 
-    QUANT(INDEX.output, read_pairs_ch)
+MULTIQC( 
+    QUANT.out.mix(FASTQC.out).collect(),
+    multiqc_file )
 
-    MULTIQC( 
-        QUANT.output.mix(FASTQC.output).collect(),
-        multiqc_file )
-}
-
+/* 
+ * completion handler
+ */
 workflow.onComplete {
 	log.info ( workflow.success ? "\nDone! Open the following report in your browser --> $params.outdir/multiqc_report.html\n" : "Oops .. something went wrong" )
 }
