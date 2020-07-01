@@ -56,7 +56,7 @@ process index {
 
     script:
     """
-    # code some changes and commit them to the repo
+    # code some changes in your script and save them
     salmon index --threads $task.cpus -t $transcriptome -i index
     """
 }
