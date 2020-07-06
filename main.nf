@@ -106,7 +106,7 @@ if ( params.fastqc ) {
 
 } else {
 
-    fastqc_ch = Channel.create()
+    fastqc_ch = Channel.empty()
 
 }
 
