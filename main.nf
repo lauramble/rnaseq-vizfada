@@ -47,6 +47,8 @@ Channel
 
 process index {
     tag "$transcriptome.simpleName"
+    publishDir params.outdir
+    cpus 4
 
     input:
     path transcriptome from params.transcriptome
@@ -64,6 +66,8 @@ process index {
 
 process quant {
     tag "$pair_id"
+    publishDir params.outdir
+    cpus 4
 
     input:
     path index from index_ch
@@ -81,6 +85,7 @@ process quant {
 process fastqc {
     tag "FASTQC on $sample_id"
     publishDir params.outdir
+    cpus 4
 
     input:
     tuple val(sample_id), path(reads) from read_pairs2_ch
