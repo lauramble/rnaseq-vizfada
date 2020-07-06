@@ -30,6 +30,7 @@ params.reads = "$baseDir/data/ggal/ggal_gut_{1,2}.fq"
 params.transcriptome = "$baseDir/data/ggal/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
 params.outdir = "results"
 params.multiqc = "$baseDir/multiqc"
+params.fastqc = true
 
 log.info """\
  R N A S E Q - N F   P I P E L I N E
@@ -37,6 +38,8 @@ log.info """\
  transcriptome: ${params.transcriptome}
  reads        : ${params.reads}
  outdir       : ${params.outdir}
+ cpus         : ${params.cpus}
+ fastqc       : ${params.fastqc}
  """
 
 
@@ -47,8 +50,8 @@ Channel
 
 process index {
     tag "$transcriptome.simpleName"
-    publishDir params.outdir
-    cpus 4
+    publishDir params.outdir, mode:'copy'
+    cpus params.cpus
 
     input:
     path transcriptome from params.transcriptome
@@ -66,8 +69,8 @@ process index {
 
 process quant {
     tag "$pair_id"
-    publishDir params.outdir
-    cpus 4
+    publishDir params.outdir, mode:'copy'
+    cpus params.cpus
 
     input:
     path index from index_ch
@@ -82,24 +85,30 @@ process quant {
     """
 }
 
-process fastqc {
-    tag "FASTQC on $sample_id"
-    publishDir params.outdir
-    cpus 4
+if ( params.fastqc ) {
 
-    input:
-    tuple val(sample_id), path(reads) from read_pairs2_ch
+    process fastqc {
+        tag "FASTQC on $sample_id"
+        publishDir params.outdir, mode:'copy'
 
-    output:
-    path "fastqc_${sample_id}_logs" into fastqc_ch
+        input:
+        tuple val(sample_id), path(reads) from read_pairs2_ch
 
-    script:
-    """
-    mkdir fastqc_${sample_id}_logs
-    fastqc -o fastqc_${sample_id}_logs -f fastq -q ${reads}
-    """
+        output:
+        path "fastqc_${sample_id}_logs" into fastqc_ch
+
+        script:
+        """
+        mkdir fastqc_${sample_id}_logs
+        fastqc -o fastqc_${sample_id}_logs -f fastq -q ${reads}
+        """
+    }
+
+} else {
+
+    fastqc_ch = Channel.create()
+
 }
-
 
 process multiqc {
     publishDir params.outdir, mode:'copy'
