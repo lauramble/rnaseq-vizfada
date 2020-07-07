@@ -31,6 +31,7 @@ params.transcriptome = "$baseDir/data/ggal/ggal_1_48850000_49020000.Ggal71.500bp
 params.outdir = "results"
 params.multiqc = "$baseDir/multiqc"
 params.fastqc = true
+params.salmon = ""
 
 log.info """\
  R N A S E Q - N F   P I P E L I N E
@@ -81,7 +82,7 @@ process quant {
 
     script:
     """
-    salmon quant --threads $task.cpus --libType=U -i $index -1 ${reads[0]} -2 ${reads[1]} -o $pair_id
+    salmon quant --threads $task.cpus --libType=U -i $index -1 ${reads[0]} -2 ${reads[1]} -o $pair_id ${params.salmon}
     """
 }
 
