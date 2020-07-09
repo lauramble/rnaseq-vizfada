@@ -27,16 +27,18 @@
  */
 
 params.reads = "$baseDir/data/ggal/ggal_gut_{1,2}.fq"
-params.transcriptome = "$baseDir/data/ggal/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
+params.transcriptome = ""
 params.outdir = "results"
 params.multiqc = "$baseDir/multiqc"
 params.fastqc = true
 params.salmon = ""
+params.index = ""
 
 log.info """\
  R N A S E Q - N F   P I P E L I N E
  ===================================
  transcriptome: ${params.transcriptome}
+ index        : ${params.index}
  reads        : ${params.reads}
  outdir       : ${params.outdir}
  cpus         : ${params.cpus}
@@ -49,22 +51,26 @@ Channel
     .into { read_pairs_ch; read_pairs2_ch }
 
 
-process index {
-    tag "$transcriptome.simpleName"
-    publishDir params.outdir, mode:'copy'
-    cpus params.cpus
+if ( params.index != "" ) {
+    index_ch = Channel.fromPath( params.index )
+} else {
+    process index {
+        tag "$transcriptome.simpleName"
+        publishDir params.outdir, mode:'copy'
+        cpus params.cpus
 
-    input:
-    path transcriptome from params.transcriptome
+        input:
+        path transcriptome from params.transcriptome
 
-    output:
-    path 'index' into index_ch
+        output:
+        path 'index' into index_ch
 
-    script:
-    """
-    # code some changes in your script and save them
-    salmon index --threads $task.cpus -t $transcriptome -i index
-    """
+        script:
+        """
+        # code some changes in your script and save them
+        salmon index --threads $task.cpus -t $transcriptome -i index
+        """
+    }
 }
 
 
