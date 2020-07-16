@@ -52,6 +52,10 @@ log.info """\
  *     .into { read_pairs_ch; read_pairs2_ch }
  */
 
+Channel.fromPath(params.input).into {input_ch, echo_ch}
+
+echo_ch.println {it}
+
 process dlFromFaang {
     tag "$accession"
 
