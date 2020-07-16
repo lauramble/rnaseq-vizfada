@@ -45,11 +45,31 @@ log.info """\
  fastqc       : ${params.fastqc}
  """
 
+/*
+ * Channel
+ *     .fromFilePairs( params.reads, checkExists:true )
+ *     .into { read_pairs_ch; read_pairs2_ch }
+ */
 
-Channel
-    .fromFilePairs( params.reads, checkExists:true )
-    .into { read_pairs_ch; read_pairs2_ch }
+process dlFromFaang {
+    tag "$accession"
 
+    input:
+    each accessions from Channel.fromPath(params.input)
+
+    output:
+    tuple val(accession) [file("$accession_1.fastq.gz"), file("$accession_2.fastq.gz")] into read_pairs_ch, read_pairs2_ch
+
+    script:
+    """
+    for accession in $accession_1 $accession_2
+    do 
+      url=\$(curl "http://data.faang.org/api/file/${accession}" | grep -Po "/fastq/.*\\.fastq\\.gz")
+      url=https://hh.fire.sdo.ebi.ac.uk/fire/public/era\$url
+      wget \$url
+    done
+    """
+}
 
 if ( params.index != "" ) {
     index_ch = Channel.fromPath( params.index )
@@ -73,10 +93,10 @@ if ( params.index != "" ) {
     }
 }
 
-
 process quant {
     tag "$pair_id"
     publishDir params.outdir, mode:'copy'
+    publishDir "$params.outdir/quant", mode:'copy', pattern: "*quant.sf", saveAs {filename -> "$pair_id.sf"}
     cpus params.cpus
 
     input:
@@ -89,6 +109,7 @@ process quant {
     script:
     """
     salmon quant --threads $task.cpus --libType=U -i $index -1 ${reads[0]} -2 ${reads[1]} -o $pair_id ${params.salmon}
+    rm -f reads
     """
 }
 
@@ -99,7 +120,7 @@ if ( params.fastqc ) {
         publishDir params.outdir, mode:'copy'
 
         input:
-        tuple val(sample_id), path(reads) from read_pairs2_ch
+        tuple val(sample_id), path(reads) from read_pairs_ch
 
         output:
         path "fastqc_${sample_id}_logs" into fastqc_ch
