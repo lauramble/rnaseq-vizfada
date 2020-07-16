@@ -55,16 +55,16 @@ process dlFromFaang {
     tag "$accession"
 
     input:
-    each accessions from Channel.fromPath(params.input)
+    each accession from Channel.fromPath(params.input)
 
     output:
-    tuple val(accession) [file("$accession_1.fastq.gz"), file("$accession_2.fastq.gz")] into read_pairs_ch, read_pairs2_ch
+    tuple val(accession) [file("${accession}_1.fastq.gz"), file("${accession}_2.fastq.gz")] into read_pairs_ch, read_pairs2_ch
 
     script:
     """
-    for accession in $accession_1 $accession_2
+    for accession in ${accession}_1 ${accession}_2
     do 
-      url=\$(curl "http://data.faang.org/api/file/${accession}" | grep -Po "/fastq/.*\\.fastq\\.gz")
+      url=\$(curl "http://data.faang.org/api/file/\$accession" | grep -Po "/fastq/.*\\.fastq\\.gz")
       url=https://hh.fire.sdo.ebi.ac.uk/fire/public/era\$url
       wget \$url
     done
