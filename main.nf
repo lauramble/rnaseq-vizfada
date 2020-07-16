@@ -43,6 +43,7 @@ log.info """\
  outdir       : ${params.outdir}
  cpus         : ${params.cpus}
  fastqc       : ${params.fastqc}
+ input        : ${params.input}
  """
 
 /*
@@ -58,7 +59,7 @@ process dlFromFaang {
     each accession from Channel.fromPath(params.input)
 
     output:
-    tuple val(accession) [file("${accession}_1.fastq.gz"), file("${accession}_2.fastq.gz")] into read_pairs_ch, read_pairs2_ch
+    tuple val("$accession") [file("${accession}_1.fastq.gz"), file("${accession}_2.fastq.gz")] into read_pairs_ch, read_pairs2_ch
 
     script:
     """
