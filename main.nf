@@ -34,7 +34,7 @@ params.fastqc = false
 params.salmon = ""
 params.index = "$baseDir/data/Gallus_gallus/index"
 params.input = "$baseDir/data/Gallus_gallus/test_input.txt"
-params.cpus = 6
+params.cpus = 4
 
 log.info """\
  R N A S E Q - N F   P I P E L I N E
@@ -72,7 +72,8 @@ process test {
 */
 
 process dlFromFaang {
-    maxForks 2
+    tag "$accession"
+    maxForks 1
 
     input:
     each accession from ch_input
