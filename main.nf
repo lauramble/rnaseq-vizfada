@@ -34,7 +34,7 @@ params.fastqc = false
 params.salmon = ""
 params.index = "$baseDir/data/Gallus_gallus/index"
 params.input = "$baseDir/data/Gallus_gallus/test_input.txt"
-params.cpus = 4
+params.cpus = 2
 
 log.info """\
  R N A S E Q - N F   P I P E L I N E
@@ -127,11 +127,12 @@ process quant {
 
     output:
     path(pair_id) into quant_ch
+    tuple val(pair_id), path(reads_1), path(reads_2) into delete_fastq_ch
 
     script:
     """
-    salmon quant --threads $task.cpus --libType=U -i $index -1 ${reads_1} -2 ${reads_2} -o $pair_id ${params.salmon}
-    rm -f reads
+    salmon quant --threads $task.cpus --libType=U -i $index -1 $reads_1 -2 $reads_2 -o $pair_id $params.salmon
+    rm -f $reads_1 $reads_2
     """
 }
 
