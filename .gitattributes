@@ -1,7 +1,6 @@
 *.bin filter=lfs diff=lfs merge=lfs -text
 data/Gallus_gallus/* filter=lfs diff=lfs merge=lfs -text
 data/Gallus_gallus/index filter=lfs diff=lfs merge=lfs -text
-data/Gallus_gallus/test_input.txt filter=lfs diff=lfs merge=lfs -text
 data/Gallus_gallus/index/reflengths.bin filter=lfs diff=lfs merge=lfs -text
 data/Gallus_gallus/index/seq.bin filter=lfs diff=lfs merge=lfs -text
 data/Gallus_gallus/index/complete_ref_lens.bin filter=lfs diff=lfs merge=lfs -text
