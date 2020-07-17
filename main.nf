@@ -30,9 +30,11 @@ params.reads = "$baseDir/data/ggal/ggal_gut_{1,2}.fq"
 params.transcriptome = ""
 params.outdir = "results"
 params.multiqc = "$baseDir/multiqc"
-params.fastqc = true
+params.fastqc = false
 params.salmon = ""
-params.index = ""
+params.index = "$baseDir/data/Gallus_gallus/index"
+params.input = "$baseDir/data/Gallus_gallus/test_input.txt"
+params.cpus = 6
 
 log.info """\
  R N A S E Q - N F   P I P E L I N E
@@ -51,21 +53,33 @@ log.info """\
  *     .fromFilePairs( params.reads, checkExists:true )
  *     .into { read_pairs_ch; read_pairs2_ch }
  */
+ 
+ch_input=Channel.fromList(file(params.input).readLines())
 
-Channel.fromPath(params.input).into {input_ch, echo_ch}
+/*
+process test {
+    tag "$accession"
+    echo true
+    
+    input:
+    each accession from ch_test
 
-echo_ch.println {it}
+    shell:
+    """
+    echo $accession
+    """
+}
+*/
 
 process dlFromFaang {
-    tag "$accession"
 
     input:
-    each accession from Channel.fromPath(params.input)
+    each accession from ch_input
 
     output:
-    tuple val("$accession") [file("${accession}_1.fastq.gz"), file("${accession}_2.fastq.gz")] into read_pairs_ch, read_pairs2_ch
-
-    script:
+    tuple val(accession), file("${accession}_1.fastq.gz"), file("${accession}_2.fastq.gz") into read_pairs_ch, read_pairs2_ch
+    
+    shell:
     """
     for accession in ${accession}_1 ${accession}_2
     do 
@@ -75,6 +89,7 @@ process dlFromFaang {
     done
     """
 }
+
 
 if ( params.index != "" ) {
     index_ch = Channel.fromPath( params.index )
@@ -101,7 +116,7 @@ if ( params.index != "" ) {
 process quant {
     tag "$pair_id"
     publishDir params.outdir, mode:'copy'
-    publishDir "$params.outdir/quant", mode:'copy', pattern: "*quant.sf", saveAs {filename -> "$pair_id.sf"}
+    publishDir "$params.outdir/quant", mode:'copy', pattern: "**quant.sf", saveAs: {filename -> "${pair_id}.sf"}
     cpus params.cpus
 
     input:
@@ -125,7 +140,7 @@ if ( params.fastqc ) {
         publishDir params.outdir, mode:'copy'
 
         input:
-        tuple val(sample_id), path(reads) from read_pairs_ch
+        tuple val(sample_id), path(reads) from read_pairs2_ch
 
         output:
         path "fastqc_${sample_id}_logs" into fastqc_ch
@@ -164,3 +179,4 @@ process multiqc {
 workflow.onComplete {
 	log.info ( workflow.success ? "\nDone! Open the following report in your browser --> $params.outdir/multiqc_report.html\n" : "Oops .. something went wrong" )
 }
+
