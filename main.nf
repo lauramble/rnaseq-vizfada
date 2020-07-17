@@ -72,6 +72,7 @@ process test {
 */
 
 process dlFromFaang {
+    maxForks 1
 
     input:
     each accession from ch_input
@@ -83,7 +84,7 @@ process dlFromFaang {
     """
     for accession in ${accession}_1 ${accession}_2
     do 
-      url=\$(curl "http://data.faang.org/api/file/\$accession" | grep -Po "/fastq/.*\\.fastq\\.gz")
+      url=\$(wget "http://data.faang.org/api/file/\$accession" -q -O - | grep -Po "/fastq/.*\\.fastq\\.gz")
       url=https://hh.fire.sdo.ebi.ac.uk/fire/public/era\$url
       wget \$url
     done
