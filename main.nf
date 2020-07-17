@@ -72,7 +72,7 @@ process test {
 */
 
 process dlFromFaang {
-    maxForks 1
+    maxForks 2
 
     input:
     each accession from ch_input
@@ -122,14 +122,14 @@ process quant {
 
     input:
     path index from index_ch
-    tuple val(pair_id), path(reads) from read_pairs_ch
+    tuple val(pair_id), path(reads_1), path(reads_2) from read_pairs_ch
 
     output:
     path(pair_id) into quant_ch
 
     script:
     """
-    salmon quant --threads $task.cpus --libType=U -i $index -1 ${reads[0]} -2 ${reads[1]} -o $pair_id ${params.salmon}
+    salmon quant --threads $task.cpus --libType=U -i $index -1 ${reads_1} -2 ${reads_2} -o $pair_id ${params.salmon}
     rm -f reads
     """
 }
