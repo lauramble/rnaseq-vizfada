@@ -173,7 +173,6 @@ process quant {
 
     output:
     path(pair_id) into quant_ch
-    tuple val(pair_id), path(reads_1), path(reads_2) into delete_fastq_ch
 
     script:
     """
