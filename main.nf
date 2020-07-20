@@ -27,14 +27,16 @@
  */
 
 params.reads = "$baseDir/data/ggal/ggal_gut_{1,2}.fq"
+params.species_ensembl = "$baseDir/data/species_ensembl.txt"
 params.transcriptome = ""
 params.outdir = "results"
 params.multiqc = "$baseDir/multiqc"
 params.fastqc = false
 params.salmon = ""
-params.index = "$baseDir/data/Gallus_gallus/index"
-params.input = "$baseDir/data/Gallus_gallus/test_input.txt"
+params.species = "Gallus gallus"
+params.input = "$baseDir/data/test_input.txt"
 params.cpus = 2
+params.data = "/data"
 
 log.info """\
  R N A S E Q - N F   P I P E L I N E
@@ -53,6 +55,49 @@ log.info """\
  *     .fromFilePairs( params.reads, checkExists:true )
  *     .into { read_pairs_ch; read_pairs2_ch }
  */
+ 
+species=params.species.replaceAll(/ /, "_")
+index=file("${params.data}/${species}/index", type="dir").exists()
+ 
+if (!index) {
+    process getcDNA {
+        tag "$species"
+        
+        input:
+        val species
+        
+        output:
+        file "*.fa.gz" into ch_transcriptome 
+        
+        shell:
+        """
+        version=\$( grep $species data/species_ensembl.txt | awk '{print \$2}' )
+        url=\$( awk 'NR==1{print \$2}' data/species_ensembl.txt | sed "s/SPECIES/\\L$species/1; s/SPECIES.VERSION/$species.\$version/1" )
+        wget \$url
+        """
+    }
+    
+    process index {
+        tag "$transcriptome.simpleName"
+        publishDir params.outdir, mode:'copy'
+        cpus params.cpus
+
+        input:
+        path transcriptome from ch_transcriptome
+
+        output:
+        path "${params.data}/${species}/index" into index_ch
+
+        script:
+        """
+        # code some changes in your script and save them
+        salmon index --threads $task.cpus -t $transcriptome -i ${params.data}/${species}/index
+        """
+    }
+} else {
+    index_ch = Channel.fromPath( "${params.data}/${species}/index" )
+}
+ 
  
 ch_input=Channel.fromList(file(params.input).readLines())
 
@@ -92,7 +137,7 @@ process dlFromFaang {
     """
 }
 
-
+/*
 if ( params.index != "" ) {
     index_ch = Channel.fromPath( params.index )
 } else {
@@ -114,6 +159,7 @@ if ( params.index != "" ) {
         """
     }
 }
+*/
 
 process quant {
     tag "$pair_id"
