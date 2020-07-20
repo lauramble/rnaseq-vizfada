@@ -57,7 +57,7 @@ log.info """\
  */
  
 species=params.species.replaceAll(/ /, "_")
-index=file("${params.data}/${species}/index", type="dir").exists()
+index=file("${params.data}/${species}/index", type:"dir").exists()
  
 if (!index) {
     process getcDNA {
@@ -71,27 +71,27 @@ if (!index) {
         
         shell:
         """
-        version=\$( grep $species data/species_ensembl.txt | awk '{print \$2}' )
-        url=\$( awk 'NR==1{print \$2}' data/species_ensembl.txt | sed "s/SPECIES/\\L$species/1; s/SPECIES.VERSION/$species.\$version/1" )
+        version=\$( grep $species $params.species_ensembl | awk '{print \$2}' )
+        url=\$( awk 'NR==1{print \$2}' $params.species_ensembl | sed "s/SPECIES/\\L$species/1; s/SPECIES.VERSION/$species.\$version/1" )
         wget \$url
         """
     }
     
     process index {
         tag "$transcriptome.simpleName"
-        publishDir params.outdir, mode:'copy'
+        publishDir "$params.data/$species", mode:'copy'
         cpus params.cpus
 
         input:
         path transcriptome from ch_transcriptome
 
         output:
-        path "${params.data}/${species}/index" into index_ch
+        path "index" into index_ch
 
         script:
         """
         # code some changes in your script and save them
-        salmon index --threads $task.cpus -t $transcriptome -i ${params.data}/${species}/index
+        salmon index --threads $task.cpus -t $transcriptome -i index
         """
     }
 } else {
