@@ -26,24 +26,25 @@
  * given `params.foo` specify on the run command line `--foo some_value`.
  */
 
-params.reads = "$baseDir/data/ggal/ggal_gut_{1,2}.fq"
 params.species_ensembl = "$baseDir/data/species_ensembl.txt"
-params.transcriptome = ""
 params.outdir = "results"
 params.multiqc = "$baseDir/multiqc"
 params.fastqc = false
 params.salmon = ""
 params.species = "Gallus gallus"
 params.input = "$baseDir/data/test_input.txt"
-params.cpus = 2
+params.cpus = 3
 params.data = "/data"
+
+species=params.species.replaceAll(/ /, "_")
+index=file("${params.data}/${species}/index", type:"dir").exists()
 
 log.info """\
  R N A S E Q - N F   P I P E L I N E
  ===================================
- transcriptome: ${params.transcriptome}
- index        : ${params.index}
- reads        : ${params.reads}
+ species      : ${params.species}
+ baseDir      : ${baseDir}
+ index        : ${index}
  outdir       : ${params.outdir}
  cpus         : ${params.cpus}
  fastqc       : ${params.fastqc}
@@ -55,9 +56,7 @@ log.info """\
  *     .fromFilePairs( params.reads, checkExists:true )
  *     .into { read_pairs_ch; read_pairs2_ch }
  */
- 
-species=params.species.replaceAll(/ /, "_")
-index=file("${params.data}/${species}/index", type:"dir").exists()
+
  
 if (!index) {
     process getcDNA {
@@ -80,6 +79,7 @@ if (!index) {
     process index {
         tag "$transcriptome.simpleName"
         publishDir "$params.data/$species", mode:'copy'
+        publishDir params.outdir
         cpus params.cpus
 
         input:
@@ -164,7 +164,6 @@ if ( params.index != "" ) {
 process quant {
     tag "$pair_id"
     publishDir params.outdir, mode:'copy'
-    publishDir "$params.outdir/quant", mode:'copy', pattern: "**quant.sf", saveAs: {filename -> "${pair_id}.sf"}
     cpus params.cpus
 
     input:
