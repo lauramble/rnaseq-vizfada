@@ -223,7 +223,7 @@ process tximport {
     
     shell:
     """
-    Rscript $baseDir/scripts/TPMpergene.R $outdir/quant
+    Rscript $baseDir/scripts/TPMpergene.R $params.outdir/quant
     """
 }
 
