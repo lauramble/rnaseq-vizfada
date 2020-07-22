@@ -37,7 +37,7 @@ params.cpus = 3
 params.data = "/data"
 
 species=params.species.replaceAll(/ /, "_")
-index=file("${params.data}/${species}/index", type:"dir").exists()
+index=file("${params.data}/${species}/index", type:"dir")
 
 log.info """\
  R N A S E Q - N F   P I P E L I N E
@@ -51,7 +51,7 @@ log.info """\
  input        : ${params.input}
  """
 
-if (!index) {
+if (!index.exists()) {
     process getcDNA {
         tag "$species"
         
@@ -79,7 +79,7 @@ if (!index) {
         path transcriptome from ch_transcriptome
 
         output:
-        path "index" into index_ch
+        path "index"
 
         script:
         """
@@ -87,10 +87,8 @@ if (!index) {
         salmon index --threads $task.cpus -t $transcriptome -i index
         """
     }
-} else {
-    index_ch = Channel.fromPath( "${params.data}/${species}/index" )
 }
- 
+
  
 ch_input=Channel.fromList(file(params.input).readLines())
 
@@ -155,7 +153,7 @@ process quant {
     cpus params.cpus
 
     input:
-    path index from index_ch
+    file index from index
     tuple val(pair_id), path(reads_1), path(reads_2) from read_pairs_ch
 
     output:
@@ -216,14 +214,15 @@ process tximport {
     publishDir params.outdir, mode:'copy'
     
     input:
-    path "quant" from quant2_ch.collect()
+    path "dummy" from quant2_ch.collect()
+    path "quant" from Channel.fromPath("$params.outdir/quant")
     
     output:
     file abundance
     
     shell:
     """
-    Rscript $baseDir/scripts/TPMpergene.R $params.outdir/quant
+    Rscript $baseDir/scripts/TPMpergene.R $quant
     """
 }
 
