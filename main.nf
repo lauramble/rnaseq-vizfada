@@ -105,14 +105,24 @@ process dlFromFaang {
     tuple val(accession), file("${accession}_1.fastq.gz"), file("${accession}_2.fastq.gz") into read_pairs_ch, read_pairs2_ch
     
     shell:
-    """
-    for accession in ${accession}_1 ${accession}_2
-    do 
-      url=\$(wget "http://data.faang.org/api/file/\$accession" -q -O - | grep -Po "/fastq/.*\\.fastq\\.gz")
-      url=https://hh.fire.sdo.ebi.ac.uk/fire/public/era\$url
-      wget \$url
-    done
-    """
+    if (params.fire) {
+        """
+        for accession in ${accession}_1 ${accession}_2
+        do 
+          url=\$(wget "http://data.faang.org/api/file/\$accession" -q -O - | grep -Po "/fastq/.*\\.fastq\\.gz")
+          url=https://hh.fire.sdo.ebi.ac.uk/fire/public/era\$url
+          wget \$url
+        done
+        """
+    } else {
+        """
+        for accession in ${accession}_1 ${accession}_2
+        do 
+          url=\$(wget "http://data.faang.org/api/file/\$accession" -q -O - | grep -Po "ftp.*\\.fastq\\.gz")
+          wget \$url
+        done
+        """
+    }
 }
 
 /*
@@ -149,7 +159,7 @@ process quant {
     tuple val(pair_id), path(reads_1), path(reads_2) from read_pairs_ch
 
     output:
-    path(pair_id) into quant_ch, quant2_ch
+    path(pair_id) into (quant_ch, quant2_ch)
 
     script:
     """
