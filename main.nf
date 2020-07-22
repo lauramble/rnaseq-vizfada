@@ -51,13 +51,6 @@ log.info """\
  input        : ${params.input}
  """
 
-/*
- * Channel
- *     .fromFilePairs( params.reads, checkExists:true )
- *     .into { read_pairs_ch; read_pairs2_ch }
- */
-
- 
 if (!index) {
     process getcDNA {
         tag "$species"
@@ -101,24 +94,9 @@ if (!index) {
  
 ch_input=Channel.fromList(file(params.input).readLines())
 
-/*
-process test {
-    tag "$accession"
-    echo true
-    
-    input:
-    each accession from ch_test
-
-    shell:
-    """
-    echo $accession
-    """
-}
-*/
-
 process dlFromFaang {
     tag "$accession"
-    maxForks 1
+    // maxForks 1
 
     input:
     each accession from ch_input
@@ -163,7 +141,7 @@ if ( params.index != "" ) {
 
 process quant {
     tag "$pair_id"
-    publishDir params.outdir, mode:'copy'
+    publishDir "${params.outdir}/quant", mode:'copy'
     cpus params.cpus
 
     input:
@@ -171,7 +149,7 @@ process quant {
     tuple val(pair_id), path(reads_1), path(reads_2) from read_pairs_ch
 
     output:
-    path(pair_id) into quant_ch
+    path(pair_id) into quant_ch, quant2_ch
 
     script:
     """
@@ -220,6 +198,22 @@ process multiqc {
     cp $config/* .
     echo "custom_logo: \$PWD/logo.png" >> multiqc_config.yaml
     multiqc -v .
+    """
+}
+
+process tximport {
+    container 'jmeigs1/rscript'
+    publishDir params.outdir, mode:'copy'
+    
+    input:
+    path "quant" from quant2_ch.collect()
+    
+    output:
+    file abundance
+    
+    shell:
+    """
+    Rscript $baseDir/scripts/TPMpergene.R $outdir/quant
     """
 }
 
