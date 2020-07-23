@@ -92,6 +92,14 @@ if (!index.exists()) {
  
 ch_input=Channel.fromList(file(params.input).readLines())
 
+if (params.fire){
+    baseURL='https://hh.fire.sdo.ebi.ac.uk/fire/public/era'
+    regex='"/fastq/.*\\.fastq\\.gz"'
+} else {
+    baseURL=''
+    regex='"ftp.*\\.fastq\\.gz"'
+}
+
 process dlFromFaang {
     tag "$accession"
     // maxForks 1
@@ -100,28 +108,29 @@ process dlFromFaang {
     each accession from ch_input
 
     output:
-    tuple val(accession), file("${accession}_1.fastq.gz"), file("${accession}_2.fastq.gz") into read_pairs_ch, read_pairs2_ch
+    tuple val(accession), file("${accession}_1.fastq.gz"), file("${accession}_2.fastq.gz") optional true into read_pairs_ch, read_pairs2_ch
+    tuple val(accession), file("${accession}.fastq.gz") optional true into read_single_ch, read_single2_ch
     
     shell:
-    if (params.fire) {
-        """
-        for accession in ${accession}_1 ${accession}_2
-        do 
-          url=\$(wget "http://data.faang.org/api/file/\$accession" -q -O - | grep -Po "/fastq/.*\\.fastq\\.gz")
-          url=https://hh.fire.sdo.ebi.ac.uk/fire/public/era\$url
-          wget \$url
-        done
-        """
-    } else {
-        """
-        for accession in ${accession}_1 ${accession}_2
-        do 
-          url=\$(wget "http://data.faang.org/api/file/\$accession" -q -O - | grep -Po "ftp.*\\.fastq\\.gz")
-          wget \$url
-        done
-        """
-    }
+    '''
+    checkpaired=$(wget "http://data.faang.org/api/file/_search/?size=25000" --post-data '{"query": { "wildcard": {"name": "'!{accession}'*"}}}' -q -O - | grep -Po "!{accession}(_[12])+")
+    
+    if (( $(echo $checkpaired | wc -w) != 0 ))
+    then
+        files="!{accession}_1 !{accession}_2"
+    else
+        files=!{accession}
+    fi
+    
+    for file in $files
+    do 
+      url=$(wget "http://data.faang.org/api/file/$file" -q -O - | grep -Po !{regex})
+      url=!{baseURL}$url
+      wget $url
+    done
+    '''
 }
+
 
 /*
 if ( params.index != "" ) {
@@ -147,7 +156,7 @@ if ( params.index != "" ) {
 }
 */
 
-process quant {
+process quant_pair {
     tag "$pair_id"
     publishDir "${params.outdir}/quant", mode:'copy'
     cpus params.cpus
@@ -157,12 +166,31 @@ process quant {
     tuple val(pair_id), path(reads_1), path(reads_2) from read_pairs_ch
 
     output:
-    path(pair_id) into (quant_ch, quant2_ch)
+    path(pair_id) into (quant_pair_ch, quant_pair2_ch)
 
     script:
     """
-    salmon quant --threads $task.cpus --libType=U -i $index -1 $reads_1 -2 $reads_2 -o $pair_id $params.salmon
+    salmon quant --threads $task.cpus -l A -i $index -1 $reads_1 -2 $reads_2 -o $pair_id $params.salmon
     rm -f $reads_1 $reads_2
+    """
+}
+
+process quant_single {
+    tag "$id"
+    publishDir "${params.outdir}/quant", mode:'copy'
+    cpus params.cpus
+
+    input:
+    file index from index
+    tuple val(id), path(reads) from read_single_ch
+
+    output:
+    path(id) into (quant_single_ch, quant_single2_ch)
+
+    script:
+    """
+    salmon quant --threads $task.cpus -l A -i $index -r $reads -o $id $params.salmon
+    rm -f $reads
     """
 }
 
@@ -173,7 +201,7 @@ if ( params.fastqc ) {
         publishDir params.outdir, mode:'copy'
 
         input:
-        tuple val(sample_id), path(reads) from read_pairs2_ch
+        tuple val(sample_id), path(reads) from read_pairs2_ch.mix(read_single2_ch)
 
         output:
         path "fastqc_${sample_id}_logs" into fastqc_ch
@@ -195,7 +223,7 @@ process multiqc {
     publishDir params.outdir, mode:'copy'
     
     input:
-    path 'data*/*' from quant_ch.mix(fastqc_ch).collect()
+    path 'data*/*' from quant_pair_ch.mix(quant_single_ch).mix(fastqc_ch).collect()
     path config from params.multiqc
 
     output:
@@ -210,19 +238,19 @@ process multiqc {
 }
 
 process tximport {
-    container 'jmeigs1/rscript'
+    container 'lauramble/r-vizfada'
     publishDir params.outdir, mode:'copy'
     
     input:
-    path "dummy" from quant2_ch.collect()
+    path "dummy" from quant_pair2_ch.mix(quant_single2_ch).collect()
     path "quant" from Channel.fromPath("$params.outdir/quant")
     
     output:
     file abundance
     
-    shell:
+    script:
     """
-    Rscript $baseDir/scripts/TPMpergene.R $quant
+    $baseDir/scripts/TPMpergene.R $quant
     """
 }
 
