@@ -250,7 +250,7 @@ process tximport {
     
     script:
     """
-    $baseDir/scripts/TPMpergene.R $quant
+    Rscript $baseDir/scripts/TPMpergene.R $quant
     """
 }
 
