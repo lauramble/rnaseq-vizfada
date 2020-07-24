@@ -12,9 +12,10 @@
 
 
 /*
- * Proof of concept of a RNAseq pipeline implemented with Nextflow
+ * RNASeq pipeline for VizFaDa
  *
  * Authors:
+ * - Laura Morel <laura.morel@inrae.fr>
  * - Paolo Di Tommaso <paolo.ditommaso@gmail.com>
  * - Emilio Palumbo <emiliopalumbo@gmail.com>
  * - Evan Floden <evanfloden@gmail.com>
@@ -103,6 +104,7 @@ if (params.fire){
 process dlFromFaang {
     tag "$accession"
     // maxForks 1
+    if (params.keepReads) {publishDir "${params.outDir}/reads", pattern: "*.fastq.gz", mode: 'copy'}
 
     input:
     each accession from ch_input
@@ -171,7 +173,8 @@ process quant_pair {
     script:
     """
     salmon quant --threads $task.cpus -l A -i $index -1 $reads_1 -2 $reads_2 -o $pair_id $params.salmon
-    rm -f $reads_1 $reads_2
+    rm -rf "\$(readlink -f "$reads_1")" 
+    rm -rf "\$(readlink -f "$reads_2")"
     """
 }
 
@@ -190,15 +193,15 @@ process quant_single {
     script:
     """
     salmon quant --threads $task.cpus -l A -i $index -r $reads -o $id $params.salmon
-    rm -f $reads
+    rm -rf "\$(readlink -f "$reads")"
     """
 }
 
 if ( params.fastqc ) {
 
     process fastqc {
-        tag "FASTQC on $sample_id"
-        publishDir params.outdir, mode:'copy'
+        tag "$sample_id"
+        publishDir "${params.outdir}/FastQC", mode:'copy'
 
         input:
         tuple val(sample_id), path(reads) from read_pairs2_ch.mix(read_single2_ch)
@@ -214,9 +217,7 @@ if ( params.fastqc ) {
     }
 
 } else {
-
     fastqc_ch = Channel.empty()
-
 }
 
 process multiqc {
