@@ -246,7 +246,7 @@ process tximport {
     path "quant" from Channel.fromPath("$params.outdir/quant")
     
     output:
-    file abundance
+    file "abundance.csv"
     
     script:
     """

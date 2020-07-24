@@ -1,9 +1,9 @@
-packages="BiocManager"
-biocPackages=c("AnnotationHub", "tximport", "ensembldb")
-
-install.packages(setdiff(packages, rownames(installed.packages())))
-
-BiocManager::install(setdiff(biocPackages, rownames(installed.packages())), ask=F)
+# packages="BiocManager"
+# biocPackages=c("AnnotationHub", "tximport", "ensembldb")
+# 
+# install.packages(setdiff(packages, rownames(installed.packages())))
+# 
+# BiocManager::install(setdiff(biocPackages, rownames(installed.packages())), ask=F)
 
 library(AnnotationHub)
 library(tximport)
