@@ -37,7 +37,7 @@ galgalTximport=tximport::tximport(files, type="salmon", tx2gene = galgalTx2gene)
 # Get and write feature table
 galgalTPM=galgalTximport$abundance
 colnames(galgalTPM)=names
-write.table(galgalTPM, "abundance.csv", sep=";")
+write.table(galgalTPM, "abundance.csv", sep=";", quote = F, col.names = NA)
 
 # Create heatmap
 # galgalCor=cor(log10(galgalTPM+1))
