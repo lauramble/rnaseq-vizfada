@@ -110,8 +110,9 @@ process dlFromFaang {
     each accession from ch_input
 
     output:
-    tuple val(accession), file("${accession}_1.fastq.gz"), file("${accession}_2.fastq.gz") optional true into read_pairs_ch, read_pairs2_ch
-    tuple val(accession), file("${accession}.fastq.gz") optional true into read_single_ch, read_single2_ch
+    tuple val(accession), file("${accession}_1.fastq.gz"), file("${accession}_2.fastq.gz") optional true into read_pairs_ch
+    tuple val(accession), file("${accession}.fastq.gz") optional true into read_single_ch
+    tuple val(accession), stdout into reads_for_fastqc_ch
     
     shell:
     '''
@@ -128,8 +129,10 @@ process dlFromFaang {
     do 
       url=$(wget "http://data.faang.org/api/file/$file" -q -O - | grep -Po !{regex})
       url=!{baseURL}$url
-      wget $url
+      wget $url -q
     done
+    
+    echo $PWD
     '''
 }
 
@@ -204,8 +207,7 @@ if ( params.fastqc ) {
         publishDir "${params.outdir}/FastQC", mode:'copy'
 
         input:
-        tuple val(sample_id), path(reads) from read_pairs2_ch.mix(read_single2_ch)
-
+        tuple val(sample_id), path(reads) from reads_for_fastqc_ch
         output:
         path "fastqc_${sample_id}_logs" into fastqc_ch
 
