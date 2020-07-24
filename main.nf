@@ -103,7 +103,7 @@ if (params.fire){
 
 process dlFromFaang {
     tag "$accession"
-    maxForks 10
+    maxForks 5
     if (params.keepReads) {publishDir "${params.outDir}/reads", pattern: "*.fastq.gz", mode: 'copy'}
 
     input:
