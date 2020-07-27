@@ -60,7 +60,7 @@ if (!index.exists()) {
         val species
         
         output:
-        file "*.fa.gz" into ch_transcriptome 
+        file "*.fa.gz" into ch_transcriptome
         
         shell:
         """
@@ -265,7 +265,8 @@ process tximport {
     
     script:
     """
-    Rscript $baseDir/scripts/TPMpergene.R $quant
+    version=\$( grep $species $params.species_ensembl | awk '{print \$2}' )
+    Rscript $baseDir/scripts/TPMpergene.R $quant "${params.species}" \$version
     """
 }
 

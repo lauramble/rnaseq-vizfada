@@ -11,17 +11,20 @@ library(ensembldb)
 
 args= commandArgs(trailingOnly = T)
 
-if (length(args)!=1){
-  stop("Exactly 1 argument must be supplied", call. = F)
+if (length(args)!=2){
+  stop("Rscript TPMpergene.R <quantDir> <species> <version>", call. = F)
 }
 
 quantDir=args[1]
+species=args[2]
+version=args[3]
 
 # Query AnnotationHub for reference genome in Ensembl database
 a=AnnotationHub::AnnotationHub()
 
-q=AnnotationHub::query(a, c("EnsDb", "Gallus gallus", "100"))
+q=AnnotationHub::query(a, c("EnsDb", species, "100", version))
 galgalEnsDb=q[[1]]
+
 
 # Build tx2gene file for tximport
 galgalTx=ensembldb::transcripts(galgalEnsDb, return.type="DataFrame")
@@ -39,6 +42,10 @@ galgalTPM=galgalTximport$abundance
 colnames(galgalTPM)=names
 write.table(galgalTPM, "abundance.csv", sep=";", quote = F, col.names = NA)
 
+# gal_abundance=read.table("abundance.csv", sep=";", header=T)
+# row.names(gal_abundance)=gal_abundance$X
+# galgalTPM=gal_abundance[,-1]
+
 # Create heatmap
 # galgalCor=cor(log10(galgalTPM+1))
-# heatmap(galgalCor)
+# heatmap(galgalCor, symm=T)
