@@ -135,7 +135,7 @@ process dlFromFaang {
       checksum=$(wget http://data.faang.org/api/file/$file -q -O - | grep '"checksum": ".*?",' -Po | cut -d'"' -f4)
       while [[ $md5 != $checksum ]]
       do
-        wget $url -q
+        wget $url -q -O $file".fastq.gz"
         md5=$(md5sum $file".fastq.gz" | cut -d" " -f1)
       done
     done
