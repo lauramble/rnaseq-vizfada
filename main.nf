@@ -175,6 +175,9 @@ process quant_pair {
     cpus params.cpus
     errorStrategy 'retry'
     maxErrors 5
+    
+    when:
+    index.exists()
 
     input:
     file index from index
@@ -197,6 +200,9 @@ process quant_single {
     cpus params.cpus
     errorStrategy 'retry'
     maxErrors 5
+    
+    when:
+    index.exists()
 
     input:
     file index from index
