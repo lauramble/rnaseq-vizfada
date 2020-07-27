@@ -105,6 +105,8 @@ process dlFromFaang {
     tag "$accession"
     maxForks 5
     if (params.keepReads) {publishDir "${params.outDir}/reads", pattern: "*.fastq.gz", mode: 'copy'}
+    errorStrategy 'retry'
+    maxErrors 5    
 
     input:
     each accession from ch_input
@@ -129,7 +131,12 @@ process dlFromFaang {
     do 
       url=$(wget "http://data.faang.org/api/file/$file" -q -O - | grep -Po !{regex})
       url=!{baseURL}$url
-      wget $url -q
+      checksum=$(wget http://data.faang.org/api/file/$file -q -O - | grep '"checksum": ".*?",' -Po | cut -d'"' -f4)
+      while (( md5 != checksum ))
+      do
+        wget $url -q
+        md5=$(md5sum $file".fastq.gz" | cut -d" " -f1)
+      done
     done
     
     echo $PWD
@@ -165,6 +172,8 @@ process quant_pair {
     tag "$pair_id"
     publishDir "${params.outdir}/quant", mode:'copy'
     cpus params.cpus
+    errorStrategy 'retry'
+    maxErrors 5
 
     input:
     file index from index
@@ -185,6 +194,8 @@ process quant_single {
     tag "$id"
     publishDir "${params.outdir}/quant", mode:'copy'
     cpus params.cpus
+    errorStrategy 'retry'
+    maxErrors 5
 
     input:
     file index from index
