@@ -150,7 +150,7 @@ process dlFromFaangAndQuant {
         salmon quant --threads !{task.cpus} -l A -i !{index} -r !{accession}.fastq.gz -o !{accession} !{params.salmon}
     fi
     
-    rm -rf $files  
+    rm -rf *.fastq.gz
     
     echo $PWD
     '''
