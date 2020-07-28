@@ -108,6 +108,7 @@ process dlFromFaangAndQuant {
     publishDir "${params.outdir}/quant", mode:'copy', pattern: "${accession}"
     errorStrategy 'retry'
     maxErrors 5    
+    cpus params.cpus
     
     input:
     each accession from ch_input
