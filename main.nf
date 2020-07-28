@@ -103,8 +103,9 @@ if (params.fire){
 
 process dlFromFaangAndQuant {
     tag "$accession"
-    maxForks 5
+    maxForks 10
     if (params.keepReads) {publishDir "${params.outDir}/reads", pattern: "*.fastq.gz", mode: 'copy'}
+    publishDir "${params.outdir}/quant", mode:'copy', pattern: "${accession}"
     errorStrategy 'retry'
     maxErrors 5    
     
@@ -113,9 +114,7 @@ process dlFromFaangAndQuant {
     file index
 
     output:
-    tuple val(accession), file("${accession}_1.fastq.gz"), file("${accession}_2.fastq.gz") optional true into read_pairs_ch
-    tuple val(accession), file("${accession}.fastq.gz") optional true into read_single_ch
-    tuple val(accession), stdout into reads_for_fastqc_ch
+    path "${accession}" into quant_ch
     
     shell:
     '''
@@ -179,7 +178,7 @@ if ( params.index != "" ) {
         """
     }
 }
-*/
+
 
 process quant_pair {
     tag "$pair_id"
@@ -229,6 +228,7 @@ process quant_single {
     rm -rf "\$(readlink -f "$reads")"
     """
 }
+*/
 
 if ( params.fastqc ) {
 
@@ -256,7 +256,7 @@ process multiqc {
     publishDir params.outdir, mode:'copy'
     
     input:
-    path 'data*/*' from quant_pair_ch.mix(quant_single_ch).mix(fastqc_ch).collect()
+    path 'data*/*' from quant_ch.mix(fastqc_ch).collect()
     path config from params.multiqc
 
     output:
