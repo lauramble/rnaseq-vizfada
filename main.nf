@@ -101,18 +101,16 @@ if (params.fire){
     regex='"ftp.*\\.fastq\\.gz"'
 }
 
-process dlFromFaang {
+process dlFromFaangAndQuant {
     tag "$accession"
     maxForks 5
     if (params.keepReads) {publishDir "${params.outDir}/reads", pattern: "*.fastq.gz", mode: 'copy'}
     errorStrategy 'retry'
     maxErrors 5    
     
-    when:
-    index.exists()
-
     input:
     each accession from ch_input
+    file index
 
     output:
     tuple val(accession), file("${accession}_1.fastq.gz"), file("${accession}_2.fastq.gz") optional true into read_pairs_ch
@@ -142,6 +140,17 @@ process dlFromFaang {
         md5=$(md5sum $file".fastq.gz" | cut -d" " -f1)
       done
     done
+    
+    if (( $(echo $files | wc -w) == 2))
+    then
+        reads_1=!{accession}_1.fastq.gz
+        reads_2=!{accession}_2.fastq.gz
+        salmon quant --threads !{task.cpus} -l A -i !{index} -1 $reads_1 -2 $reads_2 -o !{accession} !{params.salmon}
+    else
+        salmon quant --threads !{task.cpus} -l A -i !{index} -r !{accession}.fastq.gz -o !{accession} !{params.salmon}
+    fi
+    
+    rm -rf $files  
     
     echo $PWD
     '''
