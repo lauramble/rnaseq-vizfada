@@ -107,6 +107,9 @@ process dlFromFaang {
     if (params.keepReads) {publishDir "${params.outDir}/reads", pattern: "*.fastq.gz", mode: 'copy'}
     errorStrategy 'retry'
     maxErrors 5    
+    
+    when:
+    index.exists()
 
     input:
     each accession from ch_input
