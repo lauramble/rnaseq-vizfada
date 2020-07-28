@@ -114,7 +114,7 @@ process dlFromFaangAndQuant {
     file index
 
     output:
-    path "${accession}" into quant_ch
+    path "${accession}" into quant_ch, quant2_ch
     
     shell:
     '''
@@ -275,7 +275,7 @@ process tximport {
     publishDir params.outdir, mode:'copy'
     
     input:
-    path "dummy" from quant_pair2_ch.mix(quant_single2_ch).collect()
+    path "dummy" from quant2_ch.collect()
     path "quant" from Channel.fromPath("$params.outdir/quant")
     
     output:
