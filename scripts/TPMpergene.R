@@ -11,7 +11,7 @@ library(ensembldb)
 
 args= commandArgs(trailingOnly = T)
 
-if (length(args)!=2){
+if (length(args)!=3){
   stop("Rscript TPMpergene.R <quantDir> <species> <version>", call. = F)
 }
 
