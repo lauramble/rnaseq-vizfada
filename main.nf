@@ -57,7 +57,7 @@ if (params.all) {
     process getMetaAndInput {
         tag "$species"
         container 'lauramble/r-vizfada'
-        publishDir "$outdir", pattern: 'metadata.tsv' 
+        publishDir "$outdir", pattern: 'metadata.tsv', mode: 'copy'
         
         input:
         val species from Channel.from(params.species)
@@ -107,7 +107,7 @@ if (!index.exists()) {
         path transcriptome from ch_transcriptome
 
         output:
-        path "index"
+        path "index" into index_ch
 
         script:
         """
@@ -138,7 +138,7 @@ process dlFromFaangAndQuant {
     
     input:
     each accession from ch_input
-    file index
+    path index from index_ch
 
     output:
     path "${accession}" into quant_ch, quant2_ch
