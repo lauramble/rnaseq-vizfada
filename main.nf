@@ -68,7 +68,7 @@ if (params.all) {
         
         shell:
         """
-        bash $baseDir/scripts/extraction_faang.sh '$species' > /dev/null
+        bash $baseDir/scripts/extraction_faang.sh '$species' &> temp.txt
         cat input.txt
         """      
     }
