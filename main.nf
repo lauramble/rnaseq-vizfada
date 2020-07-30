@@ -70,7 +70,10 @@ if (params.all) {
         """
         bash $baseDir/scripts/extraction_faang.sh '$species' &> temp.txt
         Rscript $baseDir/scripts/GetMeta.R specimens.json experiments.json species.json
-        cat input.txt
+        for i in \$(cat input.txt)
+        do
+          echo \$i
+        done
         """      
     }
 } else {
