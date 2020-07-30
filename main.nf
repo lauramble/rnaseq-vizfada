@@ -61,19 +61,17 @@ if (params.all) {
         
         input:
         val species from Channel.from(params.species)
+        file 'extraction_faang.sh' from Channel.fromPath("$baseDir/scripts/extraction_faang.sh")
+        file 'GetMeta.R' from Channel.fromPath("$baseDir/scripts/GetMeta.R")
         
         output:
-        val into ch_input
+        file 'input.txt' into input
         file 'metadata.tsv'
         
         shell:
         """
-        bash $baseDir/scripts/extraction_faang.sh '$species' &> temp.txt
-        Rscript $baseDir/scripts/GetMeta.R specimens.json experiments.json species.json
-        for i in \$(cat input.txt)
-        do
-          echo \$i
-        done
+        bash extraction_faang.sh '$species' &> temp.txt
+        Rscript GetMeta.R specimens.json experiments.json species.json
         """      
     }
     ch_input=input.map{ it -> it.readLines() }
