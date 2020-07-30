@@ -74,7 +74,7 @@ if (params.all) {
         Rscript GetMeta.R specimens.json experiments.json species.json
         """      
     }
-    ch_input=input.map{ it -> it.readLines() }
+    ch_input=input.map{ it -> it.readLines() }.flatten()
 } else {
     ch_input=Channel.fromList(input.readLines())
 }
