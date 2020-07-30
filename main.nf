@@ -36,6 +36,7 @@ params.species = "Gallus gallus"
 params.input = "$baseDir/data/test_input.txt"
 params.cpus = 3
 params.data = "/data"
+params.all = false
 
 species=params.species.replaceAll(/ /, "_")
 index=file("${params.data}/${species}/index", type:"dir")
@@ -51,6 +52,29 @@ log.info """\
  fastqc       : ${params.fastqc}
  input        : ${params.input}
  """
+
+if (params.all) {
+    process getMetaAndInput {
+        tag "$species"
+        container 'lauramble/r-vizfada'
+        publishDir "$outDir", pattern: 'metadata.tsv' 
+        
+        input:
+        val species from Channel.from(params.species)
+        
+        output:
+        stdout into ch_input
+        file 'metadata.tsv'
+        
+        shell:
+        """
+        bash $baseDir/scripts/extraction_faang.sh '$species' > /dev/null
+        cat input.txt
+        """      
+    }
+} else {
+    ch_input=Channel.fromList(input.readLines())
+}
 
 if (!index.exists()) {
     process getcDNA {
@@ -91,7 +115,6 @@ if (!index.exists()) {
 }
 
  
-ch_input=Channel.fromList(file(params.input).readLines())
 
 if (params.fire){
     baseURL='https://hh.fire.sdo.ebi.ac.uk/fire/public/era'
