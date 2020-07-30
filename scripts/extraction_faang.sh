@@ -38,5 +38,3 @@ curl -POST "http://data.faang.org/api/experiment/_search/?size=20000" -d '{
         }
     }  
 }' > experiments.json
-
-Rscript GetMeta.R specimens.json experiments.json species.json
