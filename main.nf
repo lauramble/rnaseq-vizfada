@@ -284,6 +284,8 @@ if ( params.fastqc ) {
 process multiqc {
     publishDir params.outdir, mode:'copy'
     
+    errorStrategy 'ignore'
+    
     input:
     path 'data*/*' from quant_ch.mix(fastqc_ch).collect()
     path config from params.multiqc
@@ -302,6 +304,8 @@ process multiqc {
 process tximport {
     container 'lauramble/r-vizfada'
     publishDir params.outdir, mode:'copy'
+    
+    errorStrategy 'ignore'
     
     input:
     path "dummy" from quant2_ch.collect()
