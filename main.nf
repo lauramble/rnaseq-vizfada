@@ -69,7 +69,7 @@ if (params.all) {
         shell:
         """
         bash $baseDir/scripts/extraction_faang.sh '$species' &> temp.txt
-        Rscript $baseDir/sctipts/GetMeta.R specimens.json experiments.json species.json
+        Rscript $baseDir/scripts/GetMeta.R specimens.json experiments.json species.json
         cat input.txt
         """      
     }
