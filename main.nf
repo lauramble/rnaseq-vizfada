@@ -57,13 +57,13 @@ if (params.all) {
     process getMetaAndInput {
         tag "$species"
         container 'lauramble/r-vizfada'
-        publishDir "$outDir", pattern: 'metadata.tsv' 
+        publishDir "$outdir", pattern: 'metadata.tsv' 
         
         input:
         val species from Channel.from(params.species)
         
         output:
-        stdout into ch_input
+        val into ch_input
         file 'metadata.tsv'
         
         shell:
@@ -76,6 +76,7 @@ if (params.all) {
         done
         """      
     }
+    ch_input=input.map{ it -> it.readLines() }
 } else {
     ch_input=Channel.fromList(input.readLines())
 }
@@ -131,7 +132,7 @@ if (params.fire){
 process dlFromFaangAndQuant {
     tag "$accession"
     maxForks 10
-    if (params.keepReads) {publishDir "${params.outDir}/reads", pattern: "*.fastq.gz", mode: 'copy'}
+    if (params.keepReads) {publishDir "${params.outdir}/reads", pattern: "*.fastq.gz", mode: 'copy'}
     publishDir "${params.outdir}/quant", mode:'copy', pattern: "${accession}"
     errorStrategy 'retry'
     maxErrors 5    
