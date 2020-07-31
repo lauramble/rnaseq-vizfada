@@ -146,7 +146,7 @@ process dlFromFaangAndQuant {
     
     shell:
     '''
-    checkpaired=$(wget "http://data.faang.org/api/file/_search/?size=25000" --post-data '{"query": { "wildcard": {"name": "'!{accession}'*"}}}' -q -O - | grep -Po "!{accession}(_[12])+")
+    checkpaired=$(wget "http://data.faang.org/api/file/_search/?size=25000" --post-data '{"query": { "wildcard": {"name": "!{accession}*"}}}' -q -O - | grep -Po "!{accession}(_[12])+")
     
     if (( $(echo $checkpaired | wc -w) != 0 ))
     then
@@ -154,6 +154,8 @@ process dlFromFaangAndQuant {
     else
         files=!{accession}
     fi
+    echo $checkpaired
+    echo $files
     
     md5=""
     for file in $files
@@ -163,7 +165,7 @@ process dlFromFaangAndQuant {
       checksum=$(wget http://data.faang.org/api/file/$file -q -O - | grep '"checksum": ".*?",' -Po | cut -d'"' -f4)
       while [[ $md5 != $checksum ]]
       do
-        wget $url -q -O $file".fastq.gz"
+        wget $url -O $file".fastq.gz"
         md5=$(md5sum $file".fastq.gz" | cut -d" " -f1)
       done
     done
