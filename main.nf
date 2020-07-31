@@ -57,7 +57,7 @@ if (params.all) {
     process getMetaAndInput {
         tag "$species"
         container 'lauramble/r-vizfada'
-        publishDir "$outdir", pattern: 'metadata.tsv', mode: 'copy'
+        publishDir $params.outdir, pattern: 'metadata.tsv', mode: 'copy'
         
         input:
         val species from Channel.from(params.species)
@@ -100,7 +100,7 @@ if (!index.exists()) {
     process index {
         tag "$transcriptome.simpleName"
         publishDir "$params.data/$species", mode:'copy'
-        publishDir params.outdir
+        publishDir params.outdir, mode:'copy'
         cpus params.cpus
 
         input:
