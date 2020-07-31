@@ -57,7 +57,7 @@ if (params.all) {
     process getMetaAndInput {
         tag "$species"
         container 'lauramble/r-vizfada'
-        publishDir $params.outdir, pattern: 'metadata.tsv', mode: 'copy'
+        publishDir "$params.outdir", pattern: 'metadata.tsv', mode: 'copy'
         
         input:
         val species from Channel.from(params.species)
