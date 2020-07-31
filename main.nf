@@ -76,7 +76,7 @@ if (params.all) {
     }
     ch_input=input.map{ it -> it.readLines() }.flatten()
 } else {
-    ch_input=Channel.fromList(input.readLines())
+    ch_input=Channel.fromList(params.input.readLines())
 }
 
 if (!index.exists()) {
@@ -115,8 +115,9 @@ if (!index.exists()) {
         salmon index --threads $task.cpus -t $transcriptome -i index
         """
     }
+} else {
+    index_ch=Channel.fromPath(index)
 }
-
  
 
 if (params.fire){
@@ -177,8 +178,6 @@ process dlFromFaangAndQuant {
     fi
     
     rm -rf *.fastq.gz
-    
-    echo $PWD
     '''
 }
 
