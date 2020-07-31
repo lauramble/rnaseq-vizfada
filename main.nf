@@ -56,7 +56,7 @@ log.info """\
 if (params.all) {
     process getMetaAndInput {
         tag "$species"
-        container 'lauramble/r-vizfada'
+        container 'lauramble/r-vizfada:latest'
         publishDir "$params.outdir", pattern: 'metadata.tsv', mode: 'copy'
         
         input:
@@ -301,7 +301,7 @@ process multiqc {
 }
 
 process tximport {
-    container 'lauramble/r-vizfada'
+    container 'lauramble/r-vizfada:latest'
     publishDir params.outdir, mode:'copy'
     
     errorStrategy 'ignore'
