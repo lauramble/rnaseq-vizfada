@@ -146,6 +146,7 @@ process dlFromFaangAndQuant {
     
     shell:
     '''
+    #!/bin/bash
     checkpaired=$(wget "http://data.faang.org/api/file/_search/?size=25000" --post-data '{"query": { "wildcard": {"name": "!{accession}*"}}}' -q -O - | grep -Po "!{accession}(_[12])+")
     
     if (( $(echo $checkpaired | wc -w) != 0 ))
