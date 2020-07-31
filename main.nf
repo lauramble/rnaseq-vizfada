@@ -76,7 +76,7 @@ if (params.all) {
     }
     ch_input=input.map{ it -> it.readLines() }.flatten()
 } else {
-    ch_input=Channel.fromList(params.input.readLines())
+    ch_input=Channel.fromList(file(params.input).readLines())
 }
 
 if (!index.exists()) {
