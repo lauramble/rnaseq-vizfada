@@ -137,7 +137,6 @@ process dlFromFaangAndQuant {
     
     if (params.keepReads) {publishDir "${params.outdir}/reads", pattern: "*.fastq.gz", mode: 'copy'}
     publishDir "${params.outdir}/quant", mode:'copy', pattern: "${accession}"
-
     
     input:
     each accession from ch_input
