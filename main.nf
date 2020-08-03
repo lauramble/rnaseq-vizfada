@@ -47,7 +47,6 @@ log.info """\
  baseDir      : ${baseDir}
  index        : ${index}
  outdir       : ${params.outdir}
- cpus         : ${params.cpus}
  fastqc       : ${params.fastqc}
  input        : ${params.input}
  """
