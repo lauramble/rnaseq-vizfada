@@ -1,4 +1,7 @@
 Base_url	ftp://ftp.ensembl.org/pub/release-100/fasta/SPECIES/cdna/SPECIES.VERSION.cdna.all.fa.gz
 Bos_taurus	ARS-UCD1.2
+Capra_hircus	ARS1
+Equus_caballus	EquCab3.0
 Gallus_gallus	GRCg6a
+Ovis_aries	Oar_v3.1
 Sus_scrofa	Sscrofa11.1
