@@ -34,7 +34,6 @@ params.fastqc = false
 params.salmon = ""
 params.species = "Gallus gallus"
 params.input = "$baseDir/data/test_input.txt"
-params.cpus = 3
 params.data = "/data"
 params.all = false
 
@@ -56,6 +55,8 @@ log.info """\
 if (params.all) {
     process getMetaAndInput {
         tag "$species"
+        label "R"
+        
         container 'lauramble/r-vizfada:latest'
         publishDir "$params.outdir", pattern: 'metadata.tsv', mode: 'copy'
         
@@ -99,9 +100,10 @@ if (!index.exists()) {
     
     process index {
         tag "$transcriptome.simpleName"
+        label "salmon"
+        
         publishDir "$params.data/$species", mode:'copy'
         publishDir params.outdir, mode:'copy'
-        cpus params.cpus
 
         input:
         path transcriptome from ch_transcriptome
@@ -130,12 +132,12 @@ if (params.fire){
 
 process dlFromFaangAndQuant {
     tag "$accession"
-    maxForks 10
+    label "salmon"
+    label "canIgnore"
+    
     if (params.keepReads) {publishDir "${params.outdir}/reads", pattern: "*.fastq.gz", mode: 'copy'}
     publishDir "${params.outdir}/quant", mode:'copy', pattern: "${accession}"
-    errorStrategy 'retry'
-    maxErrors 5    
-    cpus params.cpus
+
     
     input:
     each accession from ch_input
@@ -183,81 +185,6 @@ process dlFromFaangAndQuant {
     '''
 }
 
-
-/*
-if ( params.index != "" ) {
-    index_ch = Channel.fromPath( params.index )
-} else {
-    process index {
-        tag "$transcriptome.simpleName"
-        publishDir params.outdir, mode:'copy'
-        cpus params.cpus
-
-        input:
-        path transcriptome from params.transcriptome
-
-        output:
-        path 'index' into index_ch
-
-        script:
-        """
-        # code some changes in your script and save them
-        salmon index --threads $task.cpus -t $transcriptome -i index
-        """
-    }
-}
-
-
-process quant_pair {
-    tag "$pair_id"
-    publishDir "${params.outdir}/quant", mode:'copy'
-    cpus params.cpus
-    errorStrategy 'retry'
-    maxErrors 5
-    
-    when:
-    index.exists()
-
-    input:
-    file index from index
-    tuple val(pair_id), path(reads_1), path(reads_2) from read_pairs_ch
-
-    output:
-    path(pair_id) into (quant_pair_ch, quant_pair2_ch)
-
-    script:
-    """
-    salmon quant --threads $task.cpus -l A -i $index -1 $reads_1 -2 $reads_2 -o $pair_id $params.salmon
-    rm -rf "\$(readlink -f "$reads_1")" 
-    rm -rf "\$(readlink -f "$reads_2")"
-    """
-}
-
-process quant_single {
-    tag "$id"
-    publishDir "${params.outdir}/quant", mode:'copy'
-    cpus params.cpus
-    errorStrategy 'retry'
-    maxErrors 5
-    
-    when:
-    index.exists()
-
-    input:
-    file index from index
-    tuple val(id), path(reads) from read_single_ch
-
-    output:
-    path(id) into (quant_single_ch, quant_single2_ch)
-
-    script:
-    """
-    salmon quant --threads $task.cpus -l A -i $index -r $reads -o $id $params.salmon
-    rm -rf "\$(readlink -f "$reads")"
-    """
-}
-*/
-
 if ( params.fastqc ) {
 
     process fastqc {
@@ -283,7 +210,7 @@ if ( params.fastqc ) {
 process multiqc {
     publishDir params.outdir, mode:'copy'
     
-    errorStrategy 'ignore'
+    label "canIgnore"
     
     input:
     path 'data*/*' from quant_ch.mix(fastqc_ch).collect()
@@ -301,14 +228,14 @@ process multiqc {
 }
 
 process tximport {
+    label "R"
+    label "canIgnore"
+    
     container 'lauramble/r-vizfada:latest'
     publishDir params.outdir, mode:'copy'
     
-    errorStrategy 'ignore'
-    
     input:
-    path "dummy" from quant2_ch.collect()
-    path "quant" from Channel.fromPath("$params.outdir/quant")
+    path "quant" from quant2_ch.collect()
     
     output:
     file "abundance.csv"
@@ -316,7 +243,7 @@ process tximport {
     script:
     """
     version=\$( grep $species $params.species_ensembl | awk '{print \$2}' )
-    Rscript $baseDir/scripts/TPMpergene.R $quant "${params.species}" \$version
+    Rscript $baseDir/scripts/TPMpergene.R . "${params.species}" \$version
     """
 }
 
