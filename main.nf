@@ -134,6 +134,7 @@ process dlFromFaangAndQuant {
     input:
     each accession from ch_input
     path index from index_ch
+    path asperaPath from Channel.fromPath(params.asperaPath)
 
     output:
     path "${accession}" into quant_ch, quant2_ch
@@ -160,7 +161,7 @@ process dlFromFaangAndQuant {
       checksum=$(wget http://data.faang.org/api/file/$file -q -O - | grep '"checksum": ".*?",' -Po | cut -d'"' -f4)
       if [[ !{params.aspera} == "true" ]]
       then
-        !{params.asperaPath} !{baseURL}$url
+        !{asperaPath} !{baseURL}$url
       else
         while [[ $md5 != $checksum ]]
         do
