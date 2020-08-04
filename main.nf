@@ -134,7 +134,7 @@ process dlFromFaangAndQuant {
     input:
     each accession from ch_input
     path index from index_ch
-    path asperaPath from Channel.fromPath(params.asperaPath)
+    val asperaPath from Channel.from(params.asperaPath)
 
     output:
     path "${accession}" into quant_ch, quant2_ch
