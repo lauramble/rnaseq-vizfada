@@ -161,7 +161,7 @@ process dlFromFaangAndQuant {
       checksum=$(wget http://data.faang.org/api/file/$file -q -O - | grep '"checksum": ".*?",' -Po | cut -d'"' -f4)
       if [[ !{params.aspera} == "true" ]]
       then
-        ./!{asperaPath} $url
+        ./!{asperaPath} ${url/.uk\//.uk:/} .
       else
         while [[ $md5 != $checksum ]]
         do
