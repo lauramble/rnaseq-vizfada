@@ -27,15 +27,6 @@
  * given `params.foo` specify on the run command line `--foo some_value`.
  */
 
-params.species_ensembl = "$baseDir/data/species_ensembl.txt"
-params.outdir = "results"
-params.multiqc = "$baseDir/multiqc"
-params.fastqc = false
-params.salmon = ""
-params.species = "Gallus gallus"
-params.input = "$baseDir/data/test_input.txt"
-params.data = "/data"
-params.all = false
 
 species=params.species.replaceAll(/ /, "_")
 index=file("${params.data}/${species}/index", type:"dir")
@@ -124,6 +115,9 @@ if (!index.exists()) {
 if (params.fire){
     baseURL='https://hh.fire.sdo.ebi.ac.uk/fire/public/era'
     regex='"/fastq/.*\\.fastq\\.gz"'
+} else if (params.aspera && params.asperaPath) {
+    baseURL='-QT -P33001 -i /tools/aspera/etc/asperaweb_id_dsa.openssh era-fasp@fasp'
+    regex='"\\.sra.*\\.fastq\\.gz"'
 } else {
     baseURL=''
     regex='"ftp.*\\.fastq\\.gz"'
@@ -164,11 +158,16 @@ process dlFromFaangAndQuant {
       url=$(wget "http://data.faang.org/api/file/$file" -q -O - | grep -Po !{regex})
       url=!{baseURL}$url
       checksum=$(wget http://data.faang.org/api/file/$file -q -O - | grep '"checksum": ".*?",' -Po | cut -d'"' -f4)
-      while [[ $md5 != $checksum ]]
-      do
-        wget $url -O $file".fastq.gz"
-        md5=$(md5sum $file".fastq.gz" | cut -d" " -f1)
-      done
+      if [[ !{params.aspera} == "true" ]]
+      then
+        !{params.asperaPath} !{baseURL}$url
+      else
+        while [[ $md5 != $checksum ]]
+        do
+            wget $url -O $file".fastq.gz"
+            md5=$(md5sum $file".fastq.gz" | cut -d" " -f1)
+        done
+      fi
     done
     
     if (( $(echo $files | wc -w) == 2))
