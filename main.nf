@@ -157,7 +157,7 @@ process dlFromFaangAndQuant {
     for file in $files
     do 
       url=$(wget "http://data.faang.org/api/file/$file" -q -O - | grep -Po !{regex})
-      url=!{baseURL}$url
+      url="!{baseURL}$url"
       checksum=$(wget http://data.faang.org/api/file/$file -q -O - | grep '"checksum": ".*?",' -Po | cut -d'"' -f4)
       if [[ !{params.aspera} == "true" ]]
       then
