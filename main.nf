@@ -127,6 +127,8 @@ process dlFromFaangAndQuant {
     tag "$accession"
     label "salmon"
     label "canIgnore"
+
+    stageInMode 'copy'
     
     if (params.keepReads) {publishDir "${params.outdir}/reads", pattern: "*.fastq.gz", mode: 'copy'}
     publishDir "${params.outdir}/quant", mode:'copy', pattern: "${accession}"
