@@ -116,7 +116,7 @@ if (params.fire){
     baseURL='https://hh.fire.sdo.ebi.ac.uk/fire/public/era'
     regex='"/fastq/.*\\.fastq\\.gz"'
 } else if (params.aspera && params.asperaPath) {
-    baseURL='-QT -P33001 -i /tools/aspera/etc/asperaweb_id_dsa.openssh era-fasp@fasp'
+    baseURL='-QT -P33001 -i ./aspera/etc/asperaweb_id_dsa.openssh era-fasp@fasp'
     regex='"\\.sra.*\\.fastq\\.gz"'
 } else {
     baseURL=''
@@ -127,8 +127,6 @@ process dlFromFaangAndQuant {
     tag "$accession"
     label "salmon"
     label "canIgnore"
-
-    stageInMode 'copy'
     
     if (params.keepReads) {publishDir "${params.outdir}/reads", pattern: "*.fastq.gz", mode: 'copy'}
     publishDir "${params.outdir}/quant", mode:'copy', pattern: "${accession}"
@@ -136,7 +134,7 @@ process dlFromFaangAndQuant {
     input:
     each accession from ch_input
     path index from index_ch
-    path asperaPath from Channel.fromPath(params.asperaPath)
+    path 'aspera' from Channel.fromPath(params.asperaPath)
 
     output:
     path "${accession}" into quant_ch, quant2_ch
@@ -163,7 +161,7 @@ process dlFromFaangAndQuant {
       checksum=$(wget http://data.faang.org/api/file/$file -q -O - | grep '"checksum": ".*?",' -Po | cut -d'"' -f4)
       if [[ !{params.aspera} == "true" ]]
       then
-        ./!{asperaPath} ${url/.uk\\//.uk:/} .
+        ./aspera/bin/ascp ${url/.uk\\//.uk:/} .
       else
         while [[ $md5 != $checksum ]]
         do
