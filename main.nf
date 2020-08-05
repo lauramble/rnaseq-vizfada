@@ -83,7 +83,8 @@ if (!index.exists()) {
         shell:
         """
         version=\$( grep $species $params.species_ensembl | awk '{print \$2}' )
-        url=\$( awk 'NR==1{print \$2}' $params.species_ensembl | sed "s/SPECIES/\\L$species/1; s/SPECIES.VERSION/$species.\$version/1" )
+        release=\$( grep "Release" $params.species_ensembl | awk '{print \$2}' )
+        url=\$( awk 'NR==1{print \$2}' $params.species_ensembl | sed "s/SPECIES/\\L$species/1; s/SPECIES.VERSION/$species.\$version/1; s/RELEASE/\$release/1;" )
         wget \$url
         """
     }
@@ -237,12 +238,13 @@ process tximport {
     path "quant" from quant2_ch.collect()
     
     output:
-    file "abundance.csv"
+    file "GeneMatrixTPM.tsv"
     
     script:
     """
     version=\$( grep $species $params.species_ensembl | awk '{print \$2}' )
-    Rscript $baseDir/scripts/TPMpergene.R . "${params.species}" \$version
+    release=\$( grep "Release" $params.species_ensembl | awk '{print \$2}' )
+    Rscript $baseDir/scripts/TPMpergene.R . "${params.species}" \$version \$release
     """
 }
 

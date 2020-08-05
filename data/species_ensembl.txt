@@ -1,4 +1,5 @@
-Base_url	ftp://ftp.ensembl.org/pub/release-100/fasta/SPECIES/cdna/SPECIES.VERSION.cdna.all.fa.gz
+Base_url	ftp://ftp.ensembl.org/pub/release-RELEASE/fasta/SPECIES/cdna/SPECIES.VERSION.cdna.all.fa.gz
+Release	100
 Bos_taurus	ARS-UCD1.2
 Capra_hircus	ARS1
 Equus_caballus	EquCab3.0
