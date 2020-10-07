@@ -1,41 +1,58 @@
-# RNAseq-NF pipeline 
+# VizFaDa RNA-seq quant pipeline
 
-A basic pipeline for quantification of genomic features from short read data
-implemented with Nextflow.
+This Nextflow pipeline allows fast transcript quantification of short-read RNA-seq data from [FAANG](https://data.faang.org).
 
-[![nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.24.0-brightgreen.svg)](http://nextflow.io)
-[![Build Status](https://travis-ci.org/nextflow-io/rnaseq-nf.svg?branch=master)](https://travis-ci.org/nextflow-io/rnaseq-nf)
+It uses [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) for (optional) quality control,
+ [Salmon](https://salmon.readthedocs.io/en/latest/salmon.html) for transcript quantification,
+ and [tximport](http://bioconductor.org/packages/release/bioc/html/tximport.html) to output transcript and gene level quantification matrices.
 
-## Requirements 
+It can pull fastq files from the FAANG data portal either:
+* by FIRE access if working from the EMBL-EBI [Embassy Cloud](https://www.embassycloud.org/)
+* using [Aspera downloads](https://www.ibm.com/products/aspera/downloads) from the [EMBL-EBI ENA](https://www.ebi.ac.uk/ena/browser/home)
+* uswing wget from the [EMBL-EBI ENA](https://www.ebi.ac.uk/ena/browser/home)
+
+
+## Example usage
+
+```bash
+nextflow run lauramble/rnaseq-vizfada \
+    -r v2.0 \
+    -resume \
+    --species Gallus_gallus \
+    --all true \
+    --data ''
+```
+
+## Requirements
 
 * Unix-like operating system (Linux, macOS, etc)
-* Java 8 
+* Java 8
 
-## Quickstart 
+## Quickstart
 
 1. If you don't have it already install Docker in your computer. Read more [here](https://docs.docker.com/).
 
 2. Install Nextflow (version 0.24.x or higher):
-      
+
         curl -s https://get.nextflow.io | bash
 
-3. Launch the pipeline execution: 
+3. Launch the pipeline execution:
 
         ./nextflow run nextflow-io/rnaseq-nf -with-docker
-        
+
 4. When the execution completes open in your browser the report generated at the following path:
 
-        results/multiqc_report.html 
-	
-You can see an example report at the following [link](http://multiqc.info/examples/rna-seq/multiqc_report.html).	
-	
-Note: the very first time you execute it, it will take a few minutes to download the pipeline 
+        results/multiqc_report.html
+
+You can see an example report at the following [link](http://multiqc.info/examples/rna-seq/multiqc_report.html).
+
+Note: the very first time you execute it, it will take a few minutes to download the pipeline
 from this GitHub repository and the the associated Docker images needed to execute the pipeline.  
 
 
 ## Cluster support
 
-RNASeq-NF execution relies on [Nextflow](http://www.nextflow.io) framework which provides an 
+RNASeq-NF execution relies on [Nextflow](http://www.nextflow.io) framework which provides an
 abstraction between the pipeline functional logic and the underlying processing system.
 
 This allows the execution of the pipeline in a single computer or in a HPC cluster without modifying it.
@@ -58,15 +75,14 @@ where the pipeline is going to be executed with the following content:
       queue='<queue name>'
     }
 
-To lean more about the avaible settings and the configuration file read the 
+To lean more about the avaible settings and the configuration file read the
 Nextflow [documentation](http://www.nextflow.io/docs/latest/config.html).
 
 
-## Components 
+## Components
 
-RNASeq-NF uses the following software components and tools: 
+RNASeq-NF uses the following software components and tools:
 
 * [Salmon](https://combine-lab.github.io/salmon/) 0.8.2
 * [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) 0.11.5
 * [Multiqc](https://multiqc.info) 1.0
-

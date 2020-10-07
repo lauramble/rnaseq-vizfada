@@ -12,10 +12,12 @@
 
 
 /*
- * RNASeq pipeline for VizFaDa
+ * VizFaDa RNA-seq quant pipeline
  *
  * Authors:
  * - Laura Morel <laura.morel@inrae.fr>
+ *
+ * Original authors:
  * - Paolo Di Tommaso <paolo.ditommaso@gmail.com>
  * - Emilio Palumbo <emiliopalumbo@gmail.com>
  * - Evan Floden <evanfloden@gmail.com>
@@ -46,24 +48,24 @@ if (params.all) {
     process getMetaAndInput {
         tag "$species"
         label "R"
-        
+
         container 'lauramble/r-vizfada:latest'
         publishDir "$params.outdir", pattern: 'metadata.tsv', mode: 'copy'
-        
+
         input:
         val species from Channel.from(params.species)
         file 'extraction_faang.sh' from Channel.fromPath("$baseDir/scripts/extraction_faang.sh")
         file 'GetMeta.R' from Channel.fromPath("$baseDir/scripts/GetMeta.R")
-        
+
         output:
         file 'input.txt' into input
         file 'metadata.tsv'
-        
+
         shell:
         """
         bash extraction_faang.sh '$species' &> temp.txt
         Rscript GetMeta.R specimens.json experiments.json species.json
-        """      
+        """
     }
     ch_input=input.map{ it -> it.readLines() }.flatten()
 } else {
@@ -73,13 +75,13 @@ if (params.all) {
 if (!index.exists()) {
     process getcDNA {
         tag "$species"
-        
+
         input:
         val species
-        
+
         output:
         file "*.fa.gz" into ch_transcriptome
-        
+
         shell:
         """
         version=\$( grep $species $params.species_ensembl | awk '{print \$2}' )
@@ -88,11 +90,11 @@ if (!index.exists()) {
         wget \$url
         """
     }
-    
+
     process index {
         tag "$transcriptome.simpleName"
         label "salmon"
-        
+
         publishDir "$params.data/$species", mode:'copy'
         publishDir params.outdir, mode:'copy'
 
@@ -111,7 +113,7 @@ if (!index.exists()) {
 } else {
     index_ch=Channel.fromPath(index)
 }
- 
+
 
 if (params.fire){
     baseURL='https://hh.fire.sdo.ebi.ac.uk/fire/public/era'
@@ -128,10 +130,10 @@ process dlFromFaangAndQuant {
     tag "$accession"
     label "salmon"
     label "canIgnore"
-    
+
     if (params.keepReads) {publishDir "${params.outdir}/reads", pattern: "*.fastq.gz", mode: 'copy'}
     publishDir "${params.outdir}/quant", mode:'copy', pattern: "${accession}"
-    
+
     input:
     each accession from ch_input
     path index from index_ch
@@ -139,12 +141,12 @@ process dlFromFaangAndQuant {
 
     output:
     path "${accession}" into quant_ch, quant2_ch
-    
+
     shell:
     '''
     #!/bin/bash
     checkpaired=$(wget "http://data.faang.org/api/file/_search/?size=25000" --post-data '{"query": { "wildcard": {"name": "!{accession}*"}}}' -q -O - | grep -Po "!{accession}(_[12])+")
-    
+
     if (( $(echo $checkpaired | wc -w) != 0 ))
     then
         files="!{accession}_1 !{accession}_2"
@@ -153,10 +155,10 @@ process dlFromFaangAndQuant {
     fi
     echo $checkpaired
     echo $files
-    
+
     md5=""
     for file in $files
-    do 
+    do
       url=$(wget "http://data.faang.org/api/file/$file" -q -O - | grep -Po !{regex})
       url="!{baseURL}$url"
       checksum=$(wget http://data.faang.org/api/file/$file -q -O - | grep '"checksum": ".*?",' -Po | cut -d'"' -f4)
@@ -171,7 +173,7 @@ process dlFromFaangAndQuant {
         done
       fi
     done
-    
+
     if (( $(echo $files | wc -w) == 2))
     then
         reads_1=!{accession}_1.fastq.gz
@@ -180,7 +182,7 @@ process dlFromFaangAndQuant {
     else
         salmon quant --threads !{task.cpus} -l A -i !{index} -r !{accession}.fastq.gz -o !{accession} !{params.salmon}
     fi
-    
+
     rm -rf *.fastq.gz
     '''
 }
@@ -209,9 +211,9 @@ if ( params.fastqc ) {
 
 process multiqc {
     publishDir params.outdir, mode:'copy'
-    
+
     label "canIgnore"
-    
+
     input:
     path 'data*/*' from quant_ch.mix(fastqc_ch).collect()
     path config from params.multiqc
@@ -230,16 +232,16 @@ process multiqc {
 process tximport {
     label "R"
     label "canIgnore"
-    
+
     container 'lauramble/r-vizfada:latest'
     publishDir params.outdir, mode:'copy'
-    
+
     input:
     path "quant" from quant2_ch.collect()
-    
+
     output:
     file "GeneMatrixTPM.tsv"
-    
+
     script:
     """
     version=\$( grep $species $params.species_ensembl | awk '{print \$2}' )
@@ -251,4 +253,3 @@ process tximport {
 workflow.onComplete {
 	log.info ( workflow.success ? "\nDone! Open the following report in your browser --> $params.outdir/multiqc_report.html\n" : "Oops .. something went wrong" )
 }
-
