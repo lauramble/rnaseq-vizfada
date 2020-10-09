@@ -11,7 +11,6 @@ It can pull fastq files from the FAANG data portal either:
 * using [Aspera downloads](https://www.ibm.com/products/aspera/downloads) from the [EMBL-EBI ENA](https://www.ebi.ac.uk/ena/browser/home)
 * uswing wget from the [EMBL-EBI ENA](https://www.ebi.ac.uk/ena/browser/home)
 
-
 ## Example usage
 
 ```bash
@@ -22,6 +21,49 @@ nextflow run lauramble/rnaseq-vizfada \
     --all true \
     --data ''
 ```
+
+## Pipeline parameters
+
+* `all`: boolean (`true`/`false`, default: `false`). Should all available FAANG RNA-seq matching `species` be analysed, or only the subset specified at `input`?
+
+Example:
+
+```bash
+nextflow run lauramble/rnaseq-vizfada \
+    -r v2.0 \
+    --species Gallus_gallus \
+    --all true \
+    --data ''
+```
+
+* `input`: file path (default: `"$baseDir/data/test_input.txt"`). If `all` is `false`, the pipeline will analyse only the FAANG RNAseq specified in the file.
+The `input` file should be a text file containing one ENA Run ID per line, from FAANG experiments, i.e. :
+```
+ERR1464185
+
+```
+
+* `data`: 
+
+* `fastqc`
+
+* `input`
+
+* `keepReads`
+
+* `species`
+
+* `species_ensembl`
+
+* `aspera`
+
+* `asperaPath`
+
+* `fire`
+
+* Other parameters: `custom_config_version`, custom_config_base, max_cpus, max_memory, multiqc, outdir, salmon
+
+
 
 ## Requirements
 
