@@ -24,6 +24,9 @@ nextflow run lauramble/rnaseq-vizfada \
 
 ## Pipeline parameters
 
+* `species`: string (default: `Gallus gallus`).  Which FAANG species is analysed? should be one of the species listed
+in [data/species_ensembl.txt](/data/species_ensembl.txt).
+
 * `all`: boolean (`true`/`false`, default: `false`). Should all available FAANG RNA-seq matching `species` be analysed, or only the subset specified at `input`?
 
 Example:
@@ -39,86 +42,31 @@ nextflow run lauramble/rnaseq-vizfada \
 * `input`: file path (default: `"$baseDir/data/test_input.txt"`). If `all` is `false`, the pipeline will analyse only the FAANG RNAseq specified in the file.
 The `input` file should be a text file containing one ENA Run ID per line, from FAANG experiments, i.e. :
 ```
+ERR1464184
 ERR1464185
+ERR1464186
 
 ```
 
-* `data`: 
+* `fastqc`: boolean (`true`/`false`, default: `false`). Whether fastQC should be performed on the fastq files or not.
+Running fastqc will make the pipeline slower.
 
-* `fastqc`
+* `keepReads`: boolean (`true`/`false`, default: `true`). Should the fastq files be kept or deleted after transcript quantification steps? Beware of potentially high disk usage if using `--all true --keepReads true`.
 
-* `input`
+* `species_ensembl`: string (default to $baseDir/data/species_ensembl.txt).
 
-* `keepReads`
+* `aspera`: boolean (`true`/`false`, default: `false`). Should aspera download be used instead of wget? Aspera dowload is usually much faster. If `true`, `asperaPath` need tp be defined.
 
-* `species`
+* `asperaPath`: path to the apsera binary. Example: `--asperaPath /tools/aspera/bin/ascp`
 
-* `species_ensembl`
+* `fire`: boolean (`true`/`false`, default: `false`). Should direct fire access be used instead of public ENA endpoints?
+You will need to have fire access to the ENA data, most likely though an [EMBL-EBI Embassy Cloud instance](https://www.embassycloud.org/).
 
-* `aspera`
+* `data`: name of the folder containing the fastq files. Default to `data`.
 
-* `asperaPath`
+* `outdir`: path of the output directory. Default to `results`.
 
-* `fire`
-
-* Other parameters: `custom_config_version`, custom_config_base, max_cpus, max_memory, multiqc, outdir, salmon
-
-
-
-## Requirements
-
-* Unix-like operating system (Linux, macOS, etc)
-* Java 8
-
-## Quickstart
-
-1. If you don't have it already install Docker in your computer. Read more [here](https://docs.docker.com/).
-
-2. Install Nextflow (version 0.24.x or higher):
-
-        curl -s https://get.nextflow.io | bash
-
-3. Launch the pipeline execution:
-
-        ./nextflow run nextflow-io/rnaseq-nf -with-docker
-
-4. When the execution completes open in your browser the report generated at the following path:
-
-        results/multiqc_report.html
-
-You can see an example report at the following [link](http://multiqc.info/examples/rna-seq/multiqc_report.html).
-
-Note: the very first time you execute it, it will take a few minutes to download the pipeline
-from this GitHub repository and the the associated Docker images needed to execute the pipeline.  
-
-
-## Cluster support
-
-RNASeq-NF execution relies on [Nextflow](http://www.nextflow.io) framework which provides an
-abstraction between the pipeline functional logic and the underlying processing system.
-
-This allows the execution of the pipeline in a single computer or in a HPC cluster without modifying it.
-
-Currently the following resource manager platforms are supported:
-
-  + Univa Grid Engine (UGE)
-  + Platform LSF
-  + SLURM
-  + PBS/Torque
-
-
-By default the pipeline is parallelized by spawning multiple threads in the machine where the script is launched.
-
-To submit the execution to a UGE cluster create a file named `nextflow.config` in the directory
-where the pipeline is going to be executed with the following content:
-
-    process {
-      executor='uge'
-      queue='<queue name>'
-    }
-
-To lean more about the avaible settings and the configuration file read the
-Nextflow [documentation](http://www.nextflow.io/docs/latest/config.html).
+* Other parameters: `custom_config_version`, `custom_config_base`, `max_cpus`, `max_memory`, `multiqc`, `salmon`: see [nextflow.config](nextflow.config).
 
 
 ## Components
@@ -128,3 +76,7 @@ RNASeq-NF uses the following software components and tools:
 * [Salmon](https://combine-lab.github.io/salmon/) 0.8.2
 * [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) 0.11.5
 * [Multiqc](https://multiqc.info) 1.0
+* [R](https://cran.r-project.org/)
+* [AnnotationHub](http://bioconductor.org/packages/release/bioc/html/AnnotationHub.html)
+* [tximport](http://bioconductor.org/packages/release/bioc/html/tximport.html)
+* [ensembldb](http://bioconductor.org/packages/release/bioc/html/ensembldb.html)

@@ -16,6 +16,7 @@
  *
  * Authors:
  * - Laura Morel <laura.morel@inrae.fr>
+ * - Guillaume Devailly <guillaume.devailly@inrae.fr>
  *
  * Original authors:
  * - Paolo Di Tommaso <paolo.ditommaso@gmail.com>
