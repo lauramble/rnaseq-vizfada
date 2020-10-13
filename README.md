@@ -68,6 +68,8 @@ You will need to have fire access to the ENA data, most likely though an [EMBL-E
 
 * Other parameters: `custom_config_version`, `custom_config_base`, `max_cpus`, `max_memory`, `multiqc`, `salmon`: see [nextflow.config](nextflow.config).
 
+## Outputs description
+
 
 ## Components
 
