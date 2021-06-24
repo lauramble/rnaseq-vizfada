@@ -48,13 +48,14 @@ log.info """\
 if (params.all) {
     process getMetaAndInput {
         tag "$species"
-        label "R"
+        label "python"
 
         container 'lauramble/r-vizfada:latest'
         publishDir "$params.outdir", pattern: 'metadata.tsv', mode: 'copy'
+        publishDir "$params.outdir/designs", pattern: *.csv, mode: 'copy'
 
         input:
-        val species from Channel.from(params.species)
+        val species from params.species
         file 'extraction_faang.sh' from Channel.fromPath("$baseDir/scripts/extraction_faang.sh")
         file 'GetMeta.R' from Channel.fromPath("$baseDir/scripts/GetMeta.R")
 
