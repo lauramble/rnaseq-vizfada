@@ -1,72 +1,89 @@
-# RNAseq-NF pipeline 
+# ![nf-core/vizfada](docs/images/nf-core-vizfada_logo.png)
 
-A basic pipeline for quantification of genomic features from short read data
-implemented with Nextflow.
+**Pipeline for vizfada project[D**.
 
-[![nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.24.0-brightgreen.svg)](http://nextflow.io)
-[![Build Status](https://travis-ci.org/nextflow-io/rnaseq-nf.svg?branch=master)](https://travis-ci.org/nextflow-io/rnaseq-nf)
+[![GitHub Actions CI Status](https://github.com/nf-core/vizfada/workflows/nf-core%20CI/badge.svg)](https://github.com/nf-core/vizfada/actions)
+[![GitHub Actions Linting Status](https://github.com/nf-core/vizfada/workflows/nf-core%20linting/badge.svg)](https://github.com/nf-core/vizfada/actions)
+[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.04.0-brightgreen.svg)](https://www.nextflow.io/)
 
-## Requirements 
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](https://bioconda.github.io/)
+[![Docker](https://img.shields.io/docker/automated/nfcore/vizfada.svg)](https://hub.docker.com/r/nfcore/vizfada)
+[![Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23vizfada-4A154B?logo=slack)](https://nfcore.slack.com/channels/vizfada)
 
-* Unix-like operating system (Linux, macOS, etc)
-* Java 8 
+## Introduction
 
-## Quickstart 
+<!-- TODO nf-core: Write a 1-2 sentence summary of what data the pipeline is for and what it does -->
+**nf-core/vizfada** is a bioinformatics best-practise analysis pipeline for
 
-1. If you don't have it already install Docker in your computer. Read more [here](https://docs.docker.com/).
+The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It comes with docker containers making installation trivial and results highly reproducible.
 
-2. Install Nextflow (version 0.24.x or higher):
-      
-        curl -s https://get.nextflow.io | bash
+## Quick Start
 
-3. Launch the pipeline execution: 
+1. Install [`nextflow`](https://nf-co.re/usage/installation) (`>=20.04.0`)
 
-        ./nextflow run nextflow-io/rnaseq-nf -with-docker
-        
-4. When the execution completes open in your browser the report generated at the following path:
+2. Install any of [`Docker`](https://docs.docker.com/engine/installation/), [`Singularity`](https://www.sylabs.io/guides/3.0/user-guide/), [`Podman`](https://podman.io/), [`Shifter`](https://nersc.gitlab.io/development/shifter/how-to-use/) or [`Charliecloud`](https://hpc.github.io/charliecloud/) for full pipeline reproducibility _(please only use [`Conda`](https://conda.io/miniconda.html) as a last resort; see [docs](https://nf-co.re/usage/configuration#basic-configuration-profiles))_
 
-        results/multiqc_report.html 
-	
-You can see an example report at the following [link](http://multiqc.info/examples/rna-seq/multiqc_report.html).	
-	
-Note: the very first time you execute it, it will take a few minutes to download the pipeline 
-from this GitHub repository and the the associated Docker images needed to execute the pipeline.  
+3. Download the pipeline and test it on a minimal dataset with a single command:
 
+    ```bash
+    nextflow run nf-core/vizfada -profile test,<docker/singularity/podman/shifter/charliecloud/conda/institute>
+    ```
 
-## Cluster support
+    > Please check [nf-core/configs](https://github.com/nf-core/configs#documentation) to see if a custom config file to run nf-core pipelines already exists for your Institute. If so, you can simply use `-profile <institute>` in your command. This will enable either `docker` or `singularity` and set the appropriate execution settings for your local compute environment.
 
-RNASeq-NF execution relies on [Nextflow](http://www.nextflow.io) framework which provides an 
-abstraction between the pipeline functional logic and the underlying processing system.
+4. Start running your own analysis!
 
-This allows the execution of the pipeline in a single computer or in a HPC cluster without modifying it.
+    <!-- TODO nf-core: Update the example "typical command" below used to run the pipeline -->
 
-Currently the following resource manager platforms are supported:
+    ```bash
+    nextflow run nf-core/vizfada -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> --input '*_R{1,2}.fastq.gz' --genome GRCh37
+    ```
 
-  + Univa Grid Engine (UGE)
-  + Platform LSF
-  + SLURM
-  + PBS/Torque
+See [usage docs](https://nf-co.re/vizfada/usage) for all of the available options when running the pipeline.
 
+## Pipeline Summary
 
-By default the pipeline is parallelized by spawning multiple threads in the machine where the script is launched.
+By default, the pipeline currently performs the following:
 
-To submit the execution to a UGE cluster create a file named `nextflow.config` in the directory
-where the pipeline is going to be executed with the following content:
+<!-- TODO nf-core: Fill in short bullet-pointed list of default steps of pipeline -->
 
-    process {
-      executor='uge'
-      queue='<queue name>'
-    }
+* Sequencing quality control (`FastQC`)
+* Overall pipeline run summaries (`MultiQC`)
 
-To lean more about the avaible settings and the configuration file read the 
-Nextflow [documentation](http://www.nextflow.io/docs/latest/config.html).
+## Documentation
 
+The nf-core/vizfada pipeline comes with documentation about the pipeline: [usage](https://nf-co.re/vizfada/usage) and [output](https://nf-co.re/vizfada/output).
 
-## Components 
+<!-- TODO nf-core: Add a brief overview of what the pipeline does and how it works -->
 
-RNASeq-NF uses the following software components and tools: 
+## Credits
 
-* [Salmon](https://combine-lab.github.io/salmon/) 0.8.2
-* [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) 0.11.5
-* [Multiqc](https://multiqc.info) 1.0
+nf-core/vizfada was originally written by Laura Morel.
 
+We thank the following people for their extensive assistance in the development
+of this pipeline:
+
+<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
+
+## Contributions and Support
+
+If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
+
+For further information or help, don't hesitate to get in touch on the [Slack `#vizfada` channel](https://nfcore.slack.com/channels/vizfada) (you can join with [this invite](https://nf-co.re/join/slack)).
+
+## Citations
+
+<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi. -->
+<!-- If you use  nf-core/vizfada for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
+
+You can cite the `nf-core` publication as follows:
+
+> **The nf-core framework for community-curated bioinformatics pipelines.**
+>
+> Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen.
+>
+> _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).
+
+In addition, references of tools and data used in this pipeline are as follows:
+
+<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
