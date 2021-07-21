@@ -4,30 +4,41 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <meta name="description" content="nf-core/vizfada: Pipeline for vizfada project[D">
-  <title>nf-core/vizfada Pipeline Report</title>
+  <meta name="description" content="nf-core/rnaseq: Nextflow RNA-Seq analysis pipeline, part of the nf-core community.">
+  <title>nf-core/rnaseq Pipeline Report</title>
 </head>
 <body>
 <div style="font-family: Helvetica, Arial, sans-serif; padding: 30px; max-width: 800px; margin: 0 auto;">
 
 <img src="cid:nfcorepipelinelogo">
 
-<h1>nf-core/vizfada v${version}</h1>
+<h1>nf-core/rnaseq v${version}</h1>
 <h2>Run Name: $runName</h2>
 
 <% if (!success){
     out << """
     <div style="color: #a94442; background-color: #f2dede; border-color: #ebccd1; padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px;">
-        <h4 style="margin-top:0; color: inherit;">nf-core/vizfada execution completed unsuccessfully!</h4>
+        <h4 style="margin-top:0; color: inherit;">nf-core/rnaseq execution completed unsuccessfully!</h4>
         <p>The exit status of the task that caused the workflow execution to fail was: <code>$exitStatus</code>.</p>
         <p>The full error message was:</p>
         <pre style="white-space: pre-wrap; overflow: visible; margin-bottom: 0;">${errorReport}</pre>
     </div>
     """
+} else if(fail_percent_mapped.size() > 0) {
+    out << """
+    <div style="color: #856404; background-color: #fff3cd; border-color: #ffeeba; padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px;">
+        <h4 style="margin-top:0; color: inherit;">nf-core/rnaseq execution completed with warnings!</h4>
+        <p>The pipeline finished successfully, but the following samples were skipped due to very low alignment (&lt; ${min_mapped_reads}%):</p>
+        <ul>
+            <li><code>${fail_percent_mapped.join('</code></li><li><code>')}</code></li>
+        </ul>
+        <p>
+    </div>
+    """
 } else {
     out << """
     <div style="color: #3c763d; background-color: #dff0d8; border-color: #d6e9c6; padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px;">
-        nf-core/vizfada execution completed successfully!
+        nf-core/rnaseq execution completed successfully!
     </div>
     """
 }
@@ -44,8 +55,8 @@
     </tbody>
 </table>
 
-<p>nf-core/vizfada</p>
-<p><a href="https://github.com/nf-core/vizfada">https://github.com/nf-core/vizfada</a></p>
+<p>nf-core/rnaseq</p>
+<p><a href="https://github.com/nf-core/rnaseq">https://github.com/nf-core/rnaseq</a></p>
 
 </div>
 

@@ -1,6 +1,4 @@
-# ![nf-core/vizfada](docs/images/nf-core-vizfada_logo.png)
-
-**Pipeline for vizfada project[D**.
+**RNASeq pipeline for vizfada project**.
 
 [![GitHub Actions CI Status](https://github.com/nf-core/vizfada/workflows/nf-core%20CI/badge.svg)](https://github.com/nf-core/vizfada/actions)
 [![GitHub Actions Linting Status](https://github.com/nf-core/vizfada/workflows/nf-core%20linting/badge.svg)](https://github.com/nf-core/vizfada/actions)
