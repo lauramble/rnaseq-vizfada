@@ -1,0 +1,26 @@
+{
+    "name": "rnaseq-vizfada",
+    "homePage": "https://github.com/lauramble/rnaseq-vizfada",
+    "repos": {
+        "nf-core/modules": {
+            "salmon/quant": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "salmon/index": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "multiqc": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "fastqc": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "gunzip": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "untar": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            }
+        }
+    }
+}
