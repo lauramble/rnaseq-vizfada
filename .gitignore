@@ -2,3 +2,5 @@
 work/*
 results
 main_backup.nf
+slurm*
+run_test

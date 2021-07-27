@@ -93,7 +93,7 @@ def split_exp_inputs(expList, n, name="input", all=False, verbose=False):
 # MAIN
 if __name__ == "__main__":
     species = sys.argv[1]
-    nExp = sys.argv[2]
+    nExp = int(sys.argv[2])
 
     post_experiment = {
         "query": {
@@ -140,7 +140,7 @@ if __name__ == "__main__":
 
     exps = match_exps_to_files(experiments, files)
 
-    split_exp_inputs(list(exps.keys()).sort(), nExp)
+    split_exp_inputs(list(exps.keys()), nExp, verbose=True)
 
     # with open(f'rnaseq_{species.replace(' ', '_')}.json', 'w') as f:
     #    f.write(json.dumps(exps, indent=2, sort_keys=True))

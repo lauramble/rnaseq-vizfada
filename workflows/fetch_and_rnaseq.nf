@@ -5,15 +5,23 @@
 */
 
 params.index = './index'
+//def FASTA = file("${params.index}/*.fa")[0]
+//def GTF = file("${params.index}/*.gtf")[0]
+
+def GTF = file(params.gtf).baseName
+def FASTA = file(params.fasta).baseName
+
 
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
-include { FETCHNGS } from '../subworkflows/local/fetchngs' addParams( input: params.input, nf_core_pipeline: 'rnasesq', outdir: './fetchngs')
+include { FETCHNGS } from '../subworkflows/local/fetchngs' addParams(nf_core_pipeline: 'rnasesq', outdir: "${params.outdir}/fetchngs")
 include { RNASEQ } from '../subworkflows/local/rnaseq' addParams( skip_trimming: true,
                                                                   skip_alignment:true,
                                                                   pseudo_aligner: 'salmon',
-                                                                  salmon_index: "${params.index}/index/salmon",
+                                                                  salmon_index: "${params.index}/index/salmon", //TODO: change from index/salmon to salmon
+                                                                  fasta: "${params.index}/$FASTA",
+                                                                  gtf: "${params.index}/$GTF",
                                                                   rsem_index: "${params.index}/rsem")
 
 /*
@@ -23,8 +31,14 @@ include { RNASEQ } from '../subworkflows/local/rnaseq' addParams( skip_trimming:
 */
 
 workflow FETCH_AND_RNASEQ {
-  
-    FETCHNGS()
+    take:
+    pathToIDs //path to id list
+    
+    main:
+    
+    println "=== FETCH_AND_RNASEQ ==="
+    
+    FETCHNGS( pathToIDs )
     
     RNASEQ( FETCHNGS.out.samplesheet )
 }
@@ -34,13 +48,13 @@ workflow FETCH_AND_RNASEQ {
     COMPLETION EMAIL AND SUMMARY
 ========================================================================================
 */
-
+/*
 workflow.onComplete {
     NfcoreTemplate.email(workflow, params, summary_params, projectDir, log)
     NfcoreTemplate.summary(workflow, params, log)
     WorkflowFetchngs.curateSamplesheetWarn(log)
 }
-
+*/
 /*
 ========================================================================================
     THE END

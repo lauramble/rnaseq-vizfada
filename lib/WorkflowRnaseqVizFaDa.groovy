@@ -9,18 +9,18 @@ class WorkflowRnaseqVizFaDa {
     //
     public static void initialise(params, log, valid_params) {
 
-        if (!params.species) {
-            log.error "No species provided. Check the file data/species_ensembl.tsv to get available species."
+        if (!params.species && !params.index) {
+            log.error "No species or index provided."
             System.exit(1)
         }
 
-        if (!params.input && !params.all) {
-            log.error "No parameter --input <FILE.txt> or --all. Provide an input file (check documentation) or use the parameter --all to process all the available RNASeq data from FAANG."
+        if (!params.ids && !params.all) {
+            log.error "No parameter --ids <FILE.txt> or --all. Provide an input file (check documentation) or use the parameter --all to process all the available RNASeq data from FAANG."
             System.exit(1)
         }
         
-        if (!valid_params['species'].contains(params.species)){
-          log.error "Invalid species: '${params.species}'. Available species: ${valid_params['species'].join(', ')}."
+        if (!valid_params['species'].contains("${params.species}".toLowerCase().replace(" ", "_"))) {
+          log.warn "Invalid species: '${params.species}'. Available species: ${valid_params['species'].join(', ')}."
         }
 
         if (params.all) {

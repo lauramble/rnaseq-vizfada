@@ -5,16 +5,7 @@
 */
 
 // Check mandatory parameters
-if (params.input) {
-    Channel
-        .from(file(params.input, checkIfExists: true))
-        .splitCsv(header:false, sep:'', strip:true)
-        .map { it[0] }
-        .unique()
-        .set { ch_ids }
-} else {
-    exit 1, 'Input file with public database ids not specified!'
-}
+
 
 /*
 ========================================================================================
@@ -40,8 +31,20 @@ include { GET_SOFTWARE_VERSIONS   } from '../../modules/local/get_software_versi
 */
 
 workflow FETCHNGS {
+    take:
+    ch_pathToIDs //path to id list
 
+    main:
+    
+    println "=== FETCHNGS ==="
+    
     ch_software_versions = Channel.empty()
+    
+    ch_pathToIDs
+            .splitCsv(header:false, sep:'', strip:true)
+            .map { it[0] }
+            .unique()
+            .set { ch_ids }
 
     //
     // MODULE: Get SRA run information for public database ids
@@ -131,7 +134,7 @@ workflow FETCHNGS {
     )
     
     emit:
-    SRA_MERGE_SAMPLESHEET.out.samplesheet as samplesheet
+    samplesheet = SRA_MERGE_SAMPLESHEET.out.samplesheet
 }
 
 /*
@@ -139,13 +142,13 @@ workflow FETCHNGS {
     COMPLETION EMAIL AND SUMMARY
 ========================================================================================
 */
-
+/*
 workflow.onComplete {
     NfcoreTemplate.email(workflow, params, summary_params, projectDir, log)
     NfcoreTemplate.summary(workflow, params, log)
     WorkflowFetchngs.curateSamplesheetWarn(log)
 }
-
+*/
 /*
 ========================================================================================
     THE END

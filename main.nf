@@ -91,11 +91,15 @@ workflow.onComplete {
 
 nextflow.enable.dsl = 2
 
-include { RNASEQ_VIZFADA } from './workflows/rnaseq'
+include { RNASEQ_VIZFADA } from './workflows/rnaseq_vizfada'
 
 //
 // WORKFLOW: Run main nf-core/rnaseq analysis pipeline
 //
 workflow VIZFADA {
-    RNASEQ_VIZFADA ()
+    RNASEQ_VIZFADA()
+}
+
+workflow {
+    VIZFADA ()
 }

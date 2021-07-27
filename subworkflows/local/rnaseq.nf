@@ -86,16 +86,16 @@ deseq2_qc_options.args               += params.deseq2_vst ? Utils.joinModuleArgs
 def deseq2_qc_salmon_options          = deseq2_qc_options.clone()
 deseq2_qc_salmon_options.publish_dir  = "salmon/deseq2_qc"
 
-include { BEDTOOLS_GENOMECOV                 } from '../modules/local/bedtools_genomecov'          addParams( options: modules['bedtools_genomecov']                     )
-include { DESEQ2_QC as DESEQ2_QC_STAR_SALMON } from '../modules/local/deseq2_qc'                   addParams( options: deseq2_qc_options, multiqc_label: 'star_salmon'   )
-include { DESEQ2_QC as DESEQ2_QC_RSEM        } from '../modules/local/deseq2_qc'                   addParams( options: deseq2_qc_options, multiqc_label: 'star_rsem'     )
-include { DESEQ2_QC as DESEQ2_QC_SALMON      } from '../modules/local/deseq2_qc'                   addParams( options: deseq2_qc_salmon_options, multiqc_label: 'salmon' )
-include { DUPRADAR                           } from '../modules/local/dupradar'                    addParams( options: modules['dupradar']                               )
-include { GET_SOFTWARE_VERSIONS              } from '../modules/local/get_software_versions'       addParams( options: [publish_files : ['tsv':'']]                      )
-include { MULTIQC                            } from '../modules/local/multiqc'                     addParams( options: multiqc_options                                   )
-include { MULTIQC_CUSTOM_BIOTYPE             } from '../modules/local/multiqc_custom_biotype'      addParams( options: modules['multiqc_custom_biotype']                 )
-include { MULTIQC_CUSTOM_FAIL_MAPPED         } from '../modules/local/multiqc_custom_fail_mapped'  addParams( options: [publish_files: false]                            )
-include { MULTIQC_CUSTOM_STRAND_CHECK        } from '../modules/local/multiqc_custom_strand_check' addParams( options: [publish_files: false]                            )
+include { BEDTOOLS_GENOMECOV                 } from '../../modules/local/bedtools_genomecov'          addParams( options: modules['bedtools_genomecov']                     )
+include { DESEQ2_QC as DESEQ2_QC_STAR_SALMON } from '../../modules/local/deseq2_qc'                   addParams( options: deseq2_qc_options, multiqc_label: 'star_salmon'   )
+include { DESEQ2_QC as DESEQ2_QC_RSEM        } from '../../modules/local/deseq2_qc'                   addParams( options: deseq2_qc_options, multiqc_label: 'star_rsem'     )
+include { DESEQ2_QC as DESEQ2_QC_SALMON      } from '../../modules/local/deseq2_qc'                   addParams( options: deseq2_qc_salmon_options, multiqc_label: 'salmon' )
+include { DUPRADAR                           } from '../../modules/local/dupradar'                    addParams( options: modules['dupradar']                               )
+include { GET_SOFTWARE_VERSIONS              } from '../../modules/local/get_software_versions'       addParams( options: [publish_files : ['tsv':'']]                      )
+include { MULTIQC                            } from '../../modules/local/multiqc'                     addParams( options: multiqc_options                                   )
+include { MULTIQC_CUSTOM_BIOTYPE             } from '../../modules/local/multiqc_custom_biotype'      addParams( options: modules['multiqc_custom_biotype']                 )
+include { MULTIQC_CUSTOM_FAIL_MAPPED         } from '../../modules/local/multiqc_custom_fail_mapped'  addParams( options: [publish_files: false]                            )
+include { MULTIQC_CUSTOM_STRAND_CHECK        } from '../../modules/local/multiqc_custom_strand_check' addParams( options: [publish_files: false]                            )
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -139,11 +139,11 @@ if (['star_salmon','hisat2'].contains(params.aligner)) {
     }
 }
 
-include { INPUT_CHECK    } from '../subworkflows/local/input_check'    addParams( options: [:] )
-include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome' addParams( genome_options: publish_genome_options, index_options: publish_index_options, gffread_options: gffread_options,  star_index_options: star_genomegenerate_options,  hisat2_index_options: hisat2_build_options, rsem_index_options: rsem_preparereference_options, salmon_index_options: salmon_index_options )
-include { QUANTIFY_RSEM  } from '../subworkflows/local/quantify_rsem'  addParams( calculateexpression_options: rsem_calculateexpression_options, samtools_sort_options: samtools_sort_genome_options, samtools_index_options: samtools_index_genome_options, samtools_stats_options: samtools_index_genome_options, merge_counts_options: modules['rsem_merge_counts'] )
-include { QUANTIFY_SALMON as QUANTIFY_STAR_SALMON } from '../subworkflows/local/quantify_salmon'    addParams( genome_options: publish_genome_options, tximport_options: modules['star_salmon_tximport'], salmon_quant_options: modules['star_salmon_quant'], merge_counts_options: modules['star_salmon_merge_counts'] )
-include { QUANTIFY_SALMON as QUANTIFY_SALMON      } from '../subworkflows/local/quantify_salmon'    addParams( genome_options: publish_genome_options, tximport_options: modules['salmon_tximport'], salmon_quant_options: salmon_quant_options, merge_counts_options: modules['salmon_merge_counts'] )
+include { INPUT_CHECK    } from './input_check'    addParams( options: [:] )
+include { PREPARE_GENOME } from './prepare_genome' addParams( genome_options: publish_genome_options, index_options: publish_index_options, gffread_options: gffread_options,  star_index_options: star_genomegenerate_options,  hisat2_index_options: hisat2_build_options, rsem_index_options: rsem_preparereference_options, salmon_index_options: salmon_index_options )
+include { QUANTIFY_RSEM  } from './quantify_rsem'  addParams( calculateexpression_options: rsem_calculateexpression_options, samtools_sort_options: samtools_sort_genome_options, samtools_index_options: samtools_index_genome_options, samtools_stats_options: samtools_index_genome_options, merge_counts_options: modules['rsem_merge_counts'] )
+include { QUANTIFY_SALMON as QUANTIFY_STAR_SALMON } from './quantify_salmon'    addParams( genome_options: publish_genome_options, tximport_options: modules['star_salmon_tximport'], salmon_quant_options: modules['star_salmon_quant'], merge_counts_options: modules['star_salmon_merge_counts'] )
+include { QUANTIFY_SALMON as QUANTIFY_SALMON      } from './quantify_salmon'    addParams( genome_options: publish_genome_options, tximport_options: modules['salmon_tximport'], salmon_quant_options: salmon_quant_options, merge_counts_options: modules['salmon_merge_counts'] )
 
 /*
 ========================================================================================
@@ -167,13 +167,13 @@ def subread_featurecounts_options  = modules['subread_featurecounts']
 def biotype                        = params.gencode ? "gene_type" : params.featurecounts_group_type
 subread_featurecounts_options.args += Utils.joinModuleArgs(["-g $biotype", "-t $params.featurecounts_feature_type"])
 
-include { CAT_FASTQ             } from '../modules/nf-core/software/cat/fastq/main'             addParams( options: cat_fastq_options                            )
-include { SAMTOOLS_SORT         } from '../modules/nf-core/software/samtools/sort/main'         addParams( options: modules['umitools_dedup_transcriptome_sort'] )
-include { PRESEQ_LCEXTRAP       } from '../modules/nf-core/software/preseq/lcextrap/main'       addParams( options: modules['preseq_lcextrap']                   )
-include { QUALIMAP_RNASEQ       } from '../modules/nf-core/software/qualimap/rnaseq/main'       addParams( options: modules['qualimap_rnaseq']                   )
-include { SORTMERNA             } from '../modules/nf-core/software/sortmerna/main'             addParams( options: sortmerna_options                            )
-include { STRINGTIE             } from '../modules/nf-core/software/stringtie/stringtie/main'   addParams( options: stringtie_options                            )
-include { SUBREAD_FEATURECOUNTS } from '../modules/nf-core/software/subread/featurecounts/main' addParams( options: subread_featurecounts_options                )
+include { CAT_FASTQ             } from '../../modules/nf-core/modules/cat/fastq/main'             addParams( options: cat_fastq_options                            )
+include { SAMTOOLS_SORT         } from '../../modules/nf-core/modules/samtools/sort/main'         addParams( options: modules['umitools_dedup_transcriptome_sort'] )
+include { PRESEQ_LCEXTRAP       } from '../../modules/nf-core/modules/preseq/lcextrap/main'       addParams( options: modules['preseq_lcextrap']                   )
+include { QUALIMAP_RNASEQ       } from '../../modules/nf-core/modules/qualimap/rnaseq/main'       addParams( options: modules['qualimap_rnaseq']                   )
+include { SORTMERNA             } from '../../modules/nf-core/modules/sortmerna/main'             addParams( options: sortmerna_options                            )
+include { STRINGTIE             } from '../../modules/nf-core/modules/stringtie/stringtie/main'   addParams( options: stringtie_options                            )
+include { SUBREAD_FEATURECOUNTS } from '../../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options                )
 
 //
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -211,16 +211,16 @@ if (['star_salmon','hisat2'].contains(params.aligner)) {
     }
 }
 
-include { FASTQC_UMITOOLS_TRIMGALORE } from '../subworkflows/nf-core/fastqc_umitools_trimgalore' addParams( fastqc_options: modules['fastqc'], umitools_options: umitools_extract_options, trimgalore_options: trimgalore_options )
-include { ALIGN_STAR                 } from '../subworkflows/nf-core/align_star'                 addParams( align_options: star_align_options, samtools_sort_options: samtools_sort_genome_options, samtools_index_options: samtools_index_genome_options, samtools_stats_options: samtools_index_genome_options   )
-include { ALIGN_HISAT2               } from '../subworkflows/nf-core/align_hisat2'               addParams( align_options: hisat2_align_options, samtools_sort_options: samtools_sort_genome_options, samtools_index_options: samtools_index_genome_options, samtools_stats_options: samtools_index_genome_options )
-include { BAM_SORT_SAMTOOLS          } from '../subworkflows/nf-core/bam_sort_samtools'          addParams( sort_options: modules['samtools_sort_transcriptome'], index_options: modules['samtools_index_transcriptome'], stats_options: modules['samtools_index_transcriptome']      )
-include { MARK_DUPLICATES_PICARD     } from '../subworkflows/nf-core/mark_duplicates_picard'     addParams( markduplicates_options: modules['picard_markduplicates'], samtools_index_options: picard_markduplicates_samtools, samtools_stats_options:  picard_markduplicates_samtools )
-include { RSEQC                      } from '../subworkflows/nf-core/rseqc'                      addParams( bamstat_options: modules['rseqc_bamstat'], innerdistance_options: modules['rseqc_innerdistance'], inferexperiment_options: modules['rseqc_inferexperiment'], junctionannotation_options: modules['rseqc_junctionannotation'], junctionsaturation_options: modules['rseqc_junctionsaturation'], readdistribution_options: modules['rseqc_readdistribution'], readduplication_options: modules['rseqc_readduplication'] )
-include { DEDUP_UMI_UMITOOLS as DEDUP_UMI_UMITOOLS_GENOME        } from '../subworkflows/nf-core/dedup_umi_umitools' addParams( umitools_options: umitools_dedup_genome_options, samtools_index_options: umitools_dedup_genome_samtools_options, samtools_stats_options: umitools_dedup_genome_samtools_options             )
-include { DEDUP_UMI_UMITOOLS as DEDUP_UMI_UMITOOLS_TRANSCRIPTOME } from '../subworkflows/nf-core/dedup_umi_umitools' addParams( umitools_options: modules['umitools_dedup_transcriptome'], samtools_index_options: modules['umitools_dedup_transcriptome'], samtools_stats_options: modules['umitools_dedup_transcriptome'] )
-include { BEDGRAPH_TO_BIGWIG as BEDGRAPH_TO_BIGWIG_FORWARD       } from '../subworkflows/nf-core/bedgraph_to_bigwig' addParams( bedclip_options: modules['ucsc_bedclip_forward'], bedgraphtobigwig_options: modules['ucsc_bedgraphtobigwig_forward'] )
-include { BEDGRAPH_TO_BIGWIG as BEDGRAPH_TO_BIGWIG_REVERSE       } from '../subworkflows/nf-core/bedgraph_to_bigwig' addParams( bedclip_options: modules['ucsc_bedclip_reverse'], bedgraphtobigwig_options: modules['ucsc_bedgraphtobigwig_reverse'] )
+include { FASTQC_UMITOOLS_TRIMGALORE } from '../nf-core/fastqc_umitools_trimgalore' addParams( fastqc_options: modules['fastqc'], umitools_options: umitools_extract_options, trimgalore_options: trimgalore_options )
+include { ALIGN_STAR                 } from '../nf-core/align_star'                 addParams( align_options: star_align_options, samtools_sort_options: samtools_sort_genome_options, samtools_index_options: samtools_index_genome_options, samtools_stats_options: samtools_index_genome_options   )
+include { ALIGN_HISAT2               } from '../nf-core/align_hisat2'               addParams( align_options: hisat2_align_options, samtools_sort_options: samtools_sort_genome_options, samtools_index_options: samtools_index_genome_options, samtools_stats_options: samtools_index_genome_options )
+include { BAM_SORT_SAMTOOLS          } from '../nf-core/bam_sort_samtools'          addParams( sort_options: modules['samtools_sort_transcriptome'], index_options: modules['samtools_index_transcriptome'], stats_options: modules['samtools_index_transcriptome']      )
+include { MARK_DUPLICATES_PICARD     } from '../nf-core/mark_duplicates_picard'     addParams( markduplicates_options: modules['picard_markduplicates'], samtools_index_options: picard_markduplicates_samtools, samtools_stats_options:  picard_markduplicates_samtools )
+include { RSEQC                      } from '../nf-core/rseqc'                      addParams( bamstat_options: modules['rseqc_bamstat'], innerdistance_options: modules['rseqc_innerdistance'], inferexperiment_options: modules['rseqc_inferexperiment'], junctionannotation_options: modules['rseqc_junctionannotation'], junctionsaturation_options: modules['rseqc_junctionsaturation'], readdistribution_options: modules['rseqc_readdistribution'], readduplication_options: modules['rseqc_readduplication'] )
+include { DEDUP_UMI_UMITOOLS as DEDUP_UMI_UMITOOLS_GENOME        } from '../nf-core/dedup_umi_umitools' addParams( umitools_options: umitools_dedup_genome_options, samtools_index_options: umitools_dedup_genome_samtools_options, samtools_stats_options: umitools_dedup_genome_samtools_options             )
+include { DEDUP_UMI_UMITOOLS as DEDUP_UMI_UMITOOLS_TRANSCRIPTOME } from '../nf-core/dedup_umi_umitools' addParams( umitools_options: modules['umitools_dedup_transcriptome'], samtools_index_options: modules['umitools_dedup_transcriptome'], samtools_stats_options: modules['umitools_dedup_transcriptome'] )
+include { BEDGRAPH_TO_BIGWIG as BEDGRAPH_TO_BIGWIG_FORWARD       } from '../nf-core/bedgraph_to_bigwig' addParams( bedclip_options: modules['ucsc_bedclip_forward'], bedgraphtobigwig_options: modules['ucsc_bedgraphtobigwig_forward'] )
+include { BEDGRAPH_TO_BIGWIG as BEDGRAPH_TO_BIGWIG_REVERSE       } from '../nf-core/bedgraph_to_bigwig' addParams( bedclip_options: modules['ucsc_bedclip_reverse'], bedgraphtobigwig_options: modules['ucsc_bedgraphtobigwig_reverse'] )
 
 /*
 ========================================================================================
@@ -236,12 +236,15 @@ def fail_percent_mapped = [:]
 workflow RNASEQ {
   
     take:
-    input //input samplesheet
+    ch_input //input samplesheet
 
     main:
+    
+    println "=== RNASEQ ==="
     //
     // SUBWORKFLOW: Uncompress and prepare reference genome files
     //
+        
     PREPARE_GENOME (
         prepareToolIndices,
         biotype
@@ -775,12 +778,12 @@ workflow RNASEQ {
     COMPLETION EMAIL AND SUMMARY
 ========================================================================================
 */
-
+/*
 workflow.onComplete {
     NfcoreTemplate.email(workflow, params, summary_params, projectDir, log, multiqc_report, fail_percent_mapped)
     NfcoreTemplate.summary(workflow, params, log, fail_percent_mapped, pass_percent_mapped)
 }
-
+*/
 /*
 ========================================================================================
     THE END
