@@ -27,5 +27,12 @@ process SAMPLESHEET_CHECK {
     check_samplesheet.py \\
         $samplesheet \\
         samplesheet.valid.csv
+        
+    NROW=\$(wc -l $samplesheet)
+    NROW=\${NROW[0]}
+    awk -v nrow="\$NROW" -F"," 'BEGIN {OFS=","} {if(NR==1) \$(NF+1)="size";else \$(NF+1)=nrow-1; print}' $samplesheet > ${samplesheet}.temp
+    mv ${samplesheet}.temp $samplesheet
+    awk -v nrow="\$NROW" -F"," 'BEGIN {OFS=","} {if(NR==1) \$(NF+1)="size";else \$(NF+1)=nrow-1; print}' samplesheet.valid.csv > valid.temp
+    mv valid.temp samplesheet.valid.csv
     """
 }

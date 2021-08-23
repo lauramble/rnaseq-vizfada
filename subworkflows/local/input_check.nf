@@ -14,13 +14,22 @@ workflow INPUT_CHECK {
     SAMPLESHEET_CHECK ( samplesheet )
         .splitCsv ( header:true, sep:',' )
         .map { create_fastq_channels(it) }
+        .map {
+            meta, size, fastq ->
+                meta.id = meta.id.split('_')[0..-2].join('_')
+                [ meta, size, fastq ] }
+        .map{ key, size, fastq ->
+          tuple( groupKey(key, size), fastq ) }
+        .groupTuple()
         .set { reads }
+    
+    reads.subscribe onNext: {println it}
 
     emit:
     reads // channel: [ val(meta), [ reads ] ]
 }
 
-// Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
+// Function to get list of [ meta, [ fastq_1, fastq_2 ], size ]
 def create_fastq_channels(LinkedHashMap row) {
     def meta = [:]
     meta.id           = row.sample
@@ -32,12 +41,12 @@ def create_fastq_channels(LinkedHashMap row) {
         exit 1, "ERROR: Please check input samplesheet -> Read 1 FastQ file does not exist!\n${row.fastq_1}"
     }
     if (meta.single_end) {
-        array = [ meta, [ file(row.fastq_1) ] ]
+        array = [ meta, row.size.toInteger(), [ file(row.fastq_1) ] ]
     } else {
         if (!file(row.fastq_2).exists()) {
             exit 1, "ERROR: Please check input samplesheet -> Read 2 FastQ file does not exist!\n${row.fastq_2}"
         }
-        array = [ meta, [ file(row.fastq_1), file(row.fastq_2) ] ]
+        array = [ meta, row.size.toInteger(), [ file(row.fastq_1), file(row.fastq_2) ] ]
     }
     return array
 }

@@ -36,14 +36,15 @@ def rsem_preparereference_options = modules['rsem_preparereference']
 
 
 //include { INPUT_CHECK    } from '../subworkflows/local/input_check'    addParams( options: [:] )
-/*
-include { GET_FAANG } from '../modules/local/get_faang'
+
+include { GET_FAANG } from '../modules/local/get_faang' addParams(ids: params.ids)
+//include { FLOW_MANAGER } from '../modules/local/flow_manager'
 include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome' addParams(outdir: "${params.index}/${SPECIES}",
                                                                                  rsem_index_options: rsem_preparereference_options,
                                                                                  salmon_index_options: salmon_index_options )
-include { FETCH_AND_RNASEQ } from './fetch_and_rnaseq' addParams( input: params.input, index: "${params.index}/${SPECIES}" )
-*/
-include { FETCH_AND_RNASEQ } from './fetch_and_rnaseq' addParams(index: "${params.index}" ) //TODO: add species
+//include { FETCH_AND_RNASEQ } from './fetch_and_rnaseq' addParams( input: params.input, index: "${params.index}/${SPECIES}" )
+
+include { FETCH_AND_RNASEQ } from './fetch_and_rnaseq' addParams(index: "${params.index}/$SPECIES" ) //TODO: add species
 
 /*
 ========================================================================================
@@ -52,16 +53,16 @@ include { FETCH_AND_RNASEQ } from './fetch_and_rnaseq' addParams(index: "${param
 */
 
 workflow RNASEQ_VIZFADA {
-    /*
-    if ( !file("${params.index}/${SPECIES}").exists() )
+
+    if ( !file("${params.index}/${SPECIES}").exists() ) {
       PREPARE_GENOME( prepareToolIndices, biotype )
-    */
+    }
     
-    println "=== RNASEQ_VIZFADA ==="
+    GET_FAANG ()
     
-    ch_ids = Channel.fromPath(params.ids)
+    //ch_ids = Channel.fromPath(params.ids)
               
-    FETCH_AND_RNASEQ( ch_ids )
+    FETCH_AND_RNASEQ( GET_FAANG.out.ids.flatten() )
 
 }
 

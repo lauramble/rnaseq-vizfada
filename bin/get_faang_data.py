@@ -1,9 +1,9 @@
-#!/usr/bin/python3.8
+#!/usr/bin/env python
 
-import requests
-import flatten_json as fj
-import pandas as pd
 import sys
+import os
+
+"""
 import subprocess
 
 installed = set(sys.modules.keys())
@@ -15,7 +15,11 @@ if missing:
     for pkg in missing:
         subprocess.check_call(
             [python, '-m', 'pip', 'install', pkg], stdout=subprocess.DEVNULL)
+"""
 
+import requests
+import flatten_json as fj
+import pandas as pd
 
 def json_to_df(json, flatten=True, root_keys_to_ignore=set()):
     ignore = root_keys_to_ignore
@@ -62,10 +66,19 @@ def match_exps_to_files(experiments, files, verbose=False):
                 furl = 'ftp://' + furl[furl.index('ftp.sra.ebi'):]
             except ValueError:
                 if verbose: print(f"Unusual file url: {furl}")
-            exps[x][r].append(furl)
+
+            dlExitStatus=os.WEXITSTATUS(os.system("wget -q --spider ftp://{}".format(furl)))
+            if (dlExitStatus!=0):
+                print("No valid download link for {}. Run {} has been removed.".format(furl, r))
+                name = f["_id"].split("_")
+                exps[x].remove(r)
+                noExp.append(x)
+            else:
+                exps[x][r].append(furl)
         else:
             if verbose: print(f"WARNING: {x} not found in RNA-Seq experiments !")
             noExp.append(x)
+    noExp = list(set(noExp))
     if verbose and noExp:
         print("WARNING: The following experiments were not included in the list of experiments from FAANG :")
         print("\n\t".join(noExp))
@@ -77,7 +90,8 @@ def match_exps_to_files(experiments, files, verbose=False):
 def split_exp_inputs(expList, n, name="input", all=False, verbose=False):
     tot = len(expList)
     imax = tot // n
-    ilist = [str(i).zfill(len(str(imax))) for i in range(0, imax+1)]
+    imax = imax if tot % n == 0 else imax+1
+    ilist = [str(i).zfill(len(str(imax))) for i in range(0, imax)]
 
     if all:
         with open(f"{name}.txt", 'w') as f:
@@ -86,7 +100,7 @@ def split_exp_inputs(expList, n, name="input", all=False, verbose=False):
 
     for a, i in zip(range(0, tot+n, n), ilist):
         with open(f"{name}_{i}.txt", 'w') as f:
-            f.write('\n'.join(expList[a:min(a+n, tot)]))
+            f.write('\n'.join(expList[a:min(a+n, tot)])+"\n")
         if verbose: print(f"{name}_{i}.txt")
 
 
@@ -94,28 +108,61 @@ def split_exp_inputs(expList, n, name="input", all=False, verbose=False):
 if __name__ == "__main__":
     species = sys.argv[1]
     nExp = int(sys.argv[2])
+    
+    if (len(sys.argv) == 4):
+        ids = sys.argv[3]
+        
+        try:
+            with open(ids, "r") as f:
+                accList = [l.strip() for l in f.readlines()]
+        except FileNotFoundError:
+            print("File not found ! ({})".format(ids) )
+            sys.exit(1)
 
-    post_experiment = {
-        "query": {
-            "bool": {
-                "must": [
-                    {"match": {"standardMet": "FAANG"}},
-                    {"exists": {"field": "RNA-seq"}}
-                ]
+        shouldList = [{"match": {"accession": acc}} for acc in accList]
+
+        post_experiment = {
+            "query": {
+                "bool": {
+                    "should": shouldList,
+                    "minimum_should_match":1,
+                }
             }
         }
-    }
-
-    post_files = {
-        "query": {
-            "bool": {
-                "must": [
-                    {"match": {"experiment.standardMet": "FAANG"}},
-                    {"match": {"species.text": species}}
-                ]
+        
+        shouldList = [{"match": {"experiment.accession": acc}} for acc in accList]
+        
+        post_files = {
+            "query": {
+                "bool": {
+                    "should": shouldList,
+                    "minimum_should_match":1,
+                }
             }
         }
-    }
+        
+    else:
+        post_experiment = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {"match": {"standardMet": "FAANG"}},
+                        {"exists": {"field": "RNA-seq"}}
+                    ]
+                }
+            }
+        }
+
+        post_files = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {"match": {"experiment.standardMet": "FAANG"}},
+                        {"match": {"species.text": species}}
+                    ]
+                }
+            }
+        }
 
     post_specimens = {
         "query": {
@@ -138,7 +185,7 @@ if __name__ == "__main__":
 
     # MATCH INPUT AND DATA
 
-    exps = match_exps_to_files(experiments, files)
+    exps = match_exps_to_files(experiments, files, verbose=True)
 
     split_exp_inputs(list(exps.keys()), nExp, verbose=True)
 
@@ -169,6 +216,8 @@ if __name__ == "__main__":
                     suffixes=["", "_spec"])
 
     meta.dropna(how='all', axis=1, inplace=True)
+    
+    
 
     with open("metadata.tsv", "w") as f:
         f.write(meta.to_csv(index=False, sep="\t"))

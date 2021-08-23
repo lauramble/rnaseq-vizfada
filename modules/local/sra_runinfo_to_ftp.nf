@@ -14,6 +14,8 @@ process SRA_RUNINFO_TO_FTP {
     } else {
         container "quay.io/biocontainers/python:3.8.3"
     }
+    
+    errorStrategy 'ignore'
 
     input:
     path runinfo

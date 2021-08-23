@@ -13,7 +13,7 @@ process SRA_TO_SAMPLESHEET {
     memory 100.MB
 
     input:
-    tuple val(meta), path(fastq)
+    tuple val(runinfo), path(fastq)
     val   pipeline
     val   mapping_fields
 

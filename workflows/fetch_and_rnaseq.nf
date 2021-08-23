@@ -15,7 +15,7 @@ def FASTA = file(params.fasta).baseName
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
-include { FETCHNGS } from '../subworkflows/local/fetchngs' addParams(nf_core_pipeline: 'rnasesq', outdir: "${params.outdir}/fetchngs")
+include { FETCHNGS } from '../subworkflows/local/fetchngs' addParams(nf_core_pipeline: 'rnaseq', outdir: "${params.outdir}/fetchngs")
 include { RNASEQ } from '../subworkflows/local/rnaseq' addParams( skip_trimming: true,
                                                                   skip_alignment:true,
                                                                   pseudo_aligner: 'salmon',
@@ -36,11 +36,10 @@ workflow FETCH_AND_RNASEQ {
     
     main:
     
-    println "=== FETCH_AND_RNASEQ ==="
-    
     FETCHNGS( pathToIDs )
     
     RNASEQ( FETCHNGS.out.samplesheet )
+    
 }
 
 /*

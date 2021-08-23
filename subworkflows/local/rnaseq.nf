@@ -240,7 +240,6 @@ workflow RNASEQ {
 
     main:
     
-    println "=== RNASEQ ==="
     //
     // SUBWORKFLOW: Uncompress and prepare reference genome files
     //
@@ -258,11 +257,6 @@ workflow RNASEQ {
     INPUT_CHECK (
         ch_input
     )
-    .map {
-        meta, fastq ->
-            meta.id = meta.id.split('_')[0..-2].join('_')
-            [ meta, fastq ] }
-    .groupTuple(by: [0])
     .branch {
         meta, fastq ->
             single  : fastq.size() == 1
@@ -271,6 +265,7 @@ workflow RNASEQ {
                 return [ meta, fastq.flatten() ]
     }
     .set { ch_fastq }
+    
 
     //
     // MODULE: Concatenate FastQ files from same sample if required
@@ -682,9 +677,12 @@ workflow RNASEQ {
     ch_salmon_multiqc                   = Channel.empty()
     ch_pseudoaligner_pca_multiqc        = Channel.empty()
     ch_pseudoaligner_clustering_multiqc = Channel.empty()
+    //ch_fastqc_reads = ch_trimmed_reads.join(FASTQC_UMITOOLS_TRIMGALORE.out.fastqc_zip)
+    
     if (params.pseudo_aligner == 'salmon') {
         QUANTIFY_SALMON (
             ch_trimmed_reads,
+            //ch_fastqc_reads.flatMap { it[1] },
             PREPARE_GENOME.out.salmon_index,
             ch_dummy_file,
             PREPARE_GENOME.out.gtf,
@@ -736,7 +734,7 @@ workflow RNASEQ {
 
         MULTIQC (
             ch_multiqc_config,
-            ch_multiqc_custom_config.collect().ifEmpty([]),
+            ch_multiqc_custom_config.collect(),
             GET_SOFTWARE_VERSIONS.out.yaml.collect(),
             ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
             ch_fail_mapping_multiqc.ifEmpty([]),

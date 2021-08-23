@@ -30,11 +30,15 @@ def parse_sra_runinfo(file_in):
         for line in fin:
             line_dict   = dict(zip(header,line.strip().split('\t')))
             line_dict   = collections.OrderedDict(list(line_dict.items()))
-            run_id      = line_dict['run_accession']
-            exp_id      = line_dict['experiment_accession']
-            library     = line_dict['library_layout']
-            fastq_files = line_dict['fastq_ftp']
-            fastq_md5   = line_dict['fastq_md5']
+            try:
+                run_id      = line_dict['run_accession']
+                exp_id      = line_dict['experiment_accession']
+                library     = line_dict['library_layout']
+                fastq_files = line_dict['fastq_ftp']
+                fastq_md5   = line_dict['fastq_md5']
+            except KeyError:
+                print("Metadata misssing from database. Skipping experiment.")
+
 
             db_id = exp_id
             sample_dict = collections.OrderedDict()

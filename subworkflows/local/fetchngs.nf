@@ -60,7 +60,7 @@ workflow FETCHNGS {
     SRA_RUNINFO_TO_FTP (
         SRA_IDS_TO_RUNINFO.out.tsv
     )
-
+    /*
     SRA_RUNINFO_TO_FTP
         .out
         .tsv
@@ -72,6 +72,7 @@ workflow FETCHNGS {
         }
         .unique()
         .set { ch_sra_reads }
+    */
     ch_software_versions = ch_software_versions.mix(SRA_RUNINFO_TO_FTP.out.version.first().ifEmpty(null))
 
     if (!params.skip_fastq_download) {
@@ -79,9 +80,9 @@ workflow FETCHNGS {
         // MODULE: If FTP link is provided in run information then download FastQ directly via FTP and validate with md5sums
         //
         SRA_FASTQ_FTP (
-            ch_sra_reads.map { meta, reads -> if (meta.fastq_1)  [ meta, reads ] }
+            SRA_RUNINFO_TO_FTP.out.tsv
         )
-
+        /*
         //
         // MODULE: Stage FastQ files downloaded by SRA together and auto-create a samplesheet
         //
@@ -116,6 +117,7 @@ workflow FETCHNGS {
             .map { meta, reads -> if (!meta.fastq_1) "${meta.id.split('_')[0..-2].join('_')}" }
             .unique()
             .collectFile(name: no_ids_file, sort: true, newLine: true)
+      */
     }
 
     //
@@ -134,7 +136,7 @@ workflow FETCHNGS {
     )
     
     emit:
-    samplesheet = SRA_MERGE_SAMPLESHEET.out.samplesheet
+    samplesheet = SRA_FASTQ_FTP.out.samplesheet
 }
 
 /*

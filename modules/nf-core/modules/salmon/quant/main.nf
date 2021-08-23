@@ -17,6 +17,8 @@ process SALMON_QUANT {
     } else {
         container "quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0"
     }
+    
+    afterScript "ls -l *.fastq.gz & ls -l *.fastq.gz | grep -- '->' | sed -e's/.*-> //' | xargs rm"
 
     input:
     tuple val(meta), path(reads)
@@ -29,7 +31,7 @@ process SALMON_QUANT {
     output:
     tuple val(meta), path("${prefix}"), emit: results
     path  "*.version.txt"             , emit: version
-
+        
     script:
     def software    = getSoftwareName(task.process)
     prefix          = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
@@ -74,4 +76,5 @@ process SALMON_QUANT {
 
     salmon --version | sed -e "s/salmon //g" > ${software}.version.txt
     """
+    
 }
