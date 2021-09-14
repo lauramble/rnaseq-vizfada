@@ -14,7 +14,18 @@ def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 // Validate input parameters
 WorkflowRnaseqVizFaDa.initialise(params, log, valid_params)
 
-SPECIES = "${params.species}".toLowerCase().replace(" ", "_")
+params.fspecies = "${params.species}".toLowerCase().replace(" ", "_")
+params.full_index = "${params.index}/${params.fspecies}"
+
+def GTF = file(params.gtf).baseName
+def FASTA = file(params.fasta).baseName
+
+if (file(params.full_index).exists()){
+  params.salmon_index = file("${params.full_index}/index/salmon").exists() ? file("${params.full_index}/index/salmon") : null
+  params.rsem_index = file("${params.full_index}/rsem").exists() ? file("${params.full_index}/rsem") : null
+  params.fasta = file("${params.full_index}/${FASTA}") ? file("${params.full_index}/${FASTA}") : params.fasta
+  params.gtf = file("${params.full_index}/${GTF}") ? file("${params.full_index}/${GTF}") : params.gtf
+}
 
 /*
 ========================================================================================
@@ -30,7 +41,7 @@ def modules = params.modules.clone()
 def prepareToolIndices  = 'salmon'
 def biotype = 'gen_biotype'
 
-def salmon_index_options   = modules['salmon_index']
+salmon_index_options   = modules['salmon_index']
 def salmon_quant_options   = modules['salmon_quant']
 def rsem_preparereference_options = modules['rsem_preparereference']
 
@@ -39,12 +50,12 @@ def rsem_preparereference_options = modules['rsem_preparereference']
 
 include { GET_FAANG } from '../modules/local/get_faang' addParams(ids: params.ids)
 //include { FLOW_MANAGER } from '../modules/local/flow_manager'
-include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome' addParams(outdir: "${params.index}/${SPECIES}",
+include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome' addParams(outdir: "${params.full_index}",
                                                                                  rsem_index_options: rsem_preparereference_options,
                                                                                  salmon_index_options: salmon_index_options )
-//include { FETCH_AND_RNASEQ } from './fetch_and_rnaseq' addParams( input: params.input, index: "${params.index}/${SPECIES}" )
+//include { FETCH_AND_RNASEQ } from './fetch_and_rnaseq' addParams( input: params.input, index: "${params.index}/${params.fspecies}" )
 
-include { FETCH_AND_RNASEQ } from './fetch_and_rnaseq' addParams(index: "${params.index}/$SPECIES" ) //TODO: add species
+include { FETCH_AND_RNASEQ } from './fetch_and_rnaseq' addParams(index: "${params.full_index}" ) //TODO: add species
 
 /*
 ========================================================================================
@@ -54,15 +65,15 @@ include { FETCH_AND_RNASEQ } from './fetch_and_rnaseq' addParams(index: "${param
 
 workflow RNASEQ_VIZFADA {
 
-    if ( !file("${params.index}/${SPECIES}").exists() ) {
-      PREPARE_GENOME( prepareToolIndices, biotype )
-    }
+    PREPARE_GENOME( prepareToolIndices, biotype )
     
     GET_FAANG ()
     
     //ch_ids = Channel.fromPath(params.ids)
               
-    FETCH_AND_RNASEQ( GET_FAANG.out.ids.flatten() )
+    FETCH_AND_RNASEQ( GET_FAANG.out.ids.flatten(),
+                      PREPARE_GENOME.out.gtf,
+                      PREPARE_GENOME.out.salmon_index)
 
 }
 

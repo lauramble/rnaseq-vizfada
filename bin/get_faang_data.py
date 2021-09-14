@@ -2,6 +2,7 @@
 
 import sys
 import os
+from ftplib import FTP
 
 """
 import subprocess
@@ -20,6 +21,12 @@ if missing:
 import requests
 import flatten_json as fj
 import pandas as pd
+
+def check_paired_reads(s):
+    if len(s.split("_"))>1:
+        return True
+    else:
+        return False
 
 def json_to_df(json, flatten=True, root_keys_to_ignore=set()):
     ignore = root_keys_to_ignore
@@ -56,6 +63,9 @@ def match_exps_to_files(experiments, files, verbose=False):
     exps = {d["_id"]: {} for d in experiments}
     noExp = []
 
+    ftp = FTP("ftp.sra.ebi.ac.uk")
+    ftp.login()
+    
     for f in files:
         x = f["_source"]["experiment"]["accession"]
         r = f["_source"]["run"]["accession"]
@@ -66,15 +76,38 @@ def match_exps_to_files(experiments, files, verbose=False):
                 furl = 'ftp://' + furl[furl.index('ftp.sra.ebi'):]
             except ValueError:
                 if verbose: print(f"Unusual file url: {furl}")
+            
+            dirs = furl.split("/")
+            dir = "/".join(dirs[3:-1])
+            fileName = dirs[-1]
+            try:
+                ftp.cwd(dir)
+            except Exception as e:
+                print(f"FTP directory not found: {dir}\n{e}")
+                exps[x].pop(r, None)
+            
+            
+            if fileName not in ftp.nlst():
+                print(f"File not found: {fileName}")
+                exps[x].pop(r, None)
+            else:
+                exps[x][r].append(furl)
+            
+            ftp.cwd("/")
 
-            dlExitStatus=os.WEXITSTATUS(os.system("wget -q --spider ftp://{}".format(furl)))
-            if (dlExitStatus!=0):
-                print("No valid download link for {}. Run {} has been removed.".format(furl, r))
+            """
+            cmd = "wget -q --spider '{}'".format(furl)
+            dlExitStatus=os.WEXITSTATUS(os.system(cmd))
+            if (dlExitStatus!=0 and dlExitStatus!=8):
+                print(cmd)
+                print(dlExitStatus)
+                #print("Invalid link: {}. Run {} has been removed.".format(furl, r))
                 name = f["_id"].split("_")
-                exps[x].remove(r)
+                exps[x].pop(r, None)
                 noExp.append(x)
             else:
                 exps[x][r].append(furl)
+            """
         else:
             if verbose: print(f"WARNING: {x} not found in RNA-Seq experiments !")
             noExp.append(x)
@@ -82,8 +115,17 @@ def match_exps_to_files(experiments, files, verbose=False):
     if verbose and noExp:
         print("WARNING: The following experiments were not included in the list of experiments from FAANG :")
         print("\n\t".join(noExp))
-
-    exps = {k: exps[k] for k in exps.keys() if len(exps[k]) != 0}
+    
+    exps = {k:
+            {
+                r: exps[k][r] for r in exps[k].keys()
+                if (len(exps[k][r])==2 and
+                    list(map(check_paired_reads, exps[k][r]))==[True, True])
+                or (len(exps[k][r])==1 and
+                    list(map(check_paired_reads, exps[k][r]))==[False])
+            }
+            for k in exps.keys()}
+    exps = {k: exps[k] for k in exps.keys() if len(exps[k]) != 0 and k not in noExp}
     return(exps)
 
 

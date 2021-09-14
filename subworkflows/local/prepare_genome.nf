@@ -195,6 +195,9 @@ workflow PREPARE_GENOME {
             ch_salmon_version = SALMON_INDEX.out.version
         }
     }
+    
+//    ch_done = Channel.empty()
+//    workflow.onComplete{ ch_done.bind(True) }
 
     emit:
     fasta            = ch_fasta            // path: genome.fasta
@@ -212,4 +215,5 @@ workflow PREPARE_GENOME {
     hisat2_version   = ch_hisat2_version   // path: *.version.txt
     salmon_version   = ch_salmon_version   // path: *.version.txt
     gffread_version  = ch_gffread_version  // path: *.version.txt
+//    genome_done      = ch_done
 }

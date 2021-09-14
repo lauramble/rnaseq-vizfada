@@ -4,7 +4,7 @@ process GET_FAANG {
       pattern: "*.tsv"
 
   container "lauramble/python-vizfada"
-  
+    
   output:
   path "input_*.txt", emit: ids
   path "metadata.tsv", emit: metadata

@@ -19,10 +19,9 @@ WorkflowRnaseq.initialise(params, log, valid_params)
 checkPathParamList = [
     //params.input,
     params.multiqc_config,
-    params.fasta, params.transcript_fasta, params.additional_fasta,
-    params.gtf, params.gff, params.gene_bed,
+    params.transcript_fasta, params.additional_fasta, params.gff, params.gene_bed,
     params.ribo_database_manifest, params.splicesites,
-    params.star_index, params.hisat2_index, params.rsem_index, params.salmon_index
+    params.star_index, params.hisat2_index
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
@@ -237,20 +236,23 @@ workflow RNASEQ {
   
     take:
     ch_input //input samplesheet
-
+    gtf
+    salmon_index
+    
     main:
     
     //
     // SUBWORKFLOW: Uncompress and prepare reference genome files
     //
-        
+    /*
     PREPARE_GENOME (
         prepareToolIndices,
         biotype
     )
+    */
     ch_software_versions = Channel.empty()
-    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.gffread_version.ifEmpty(null))
-
+    //ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.gffread_version.ifEmpty(null))
+    
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
@@ -319,6 +321,7 @@ workflow RNASEQ {
     ch_star_multiqc               = Channel.empty()
     ch_aligner_pca_multiqc        = Channel.empty()
     ch_aligner_clustering_multiqc = Channel.empty()
+    /*
     if (!params.skip_alignment && params.aligner == 'star_salmon') {
         ALIGN_STAR (
             ch_trimmed_reads,
@@ -400,11 +403,12 @@ workflow RNASEQ {
             ch_software_versions          = ch_software_versions.mix(DESEQ2_QC_STAR_SALMON.out.version.ifEmpty(null))
         }
     }
-
+    */
     //
     // SUBWORKFLOW: Alignment with STAR and gene/transcript quantification with RSEM
     //
     ch_rsem_multiqc = Channel.empty()
+    /*
     if (!params.skip_alignment && params.aligner == 'star_rsem') {
         QUANTIFY_RSEM (
             ch_trimmed_reads,
@@ -434,11 +438,13 @@ workflow RNASEQ {
             ch_software_versions          = ch_software_versions.mix(DESEQ2_QC_RSEM.out.version.ifEmpty(null))
         }
     }
+    */
 
     //
     // SUBWORKFLOW: Alignment with HISAT2
     //
     ch_hisat2_multiqc = Channel.empty()
+    /*
     if (!params.skip_alignment && params.aligner == 'hisat2') {
         ALIGN_HISAT2 (
             ch_trimmed_reads,
@@ -474,11 +480,12 @@ workflow RNASEQ {
             }
         }
     }
-
+    */
     //
     // Filter channels to get samples that passed STAR minimum mapping percentage
     //
     ch_fail_mapping_multiqc = Channel.empty()
+    /*
     if (!params.skip_alignment && params.aligner.contains('star')) {
         ch_star_multiqc
             .map { meta, align_log -> [ meta ] + WorkflowRnaseq.getStarPercentMapped(params, align_log) }
@@ -510,11 +517,13 @@ workflow RNASEQ {
         )
         .set { ch_fail_mapping_multiqc }
     }
-
+    */
+    
     //
     // MODULE: Run Preseq
     //
     ch_preseq_multiqc = Channel.empty()
+    /*
     if (!params.skip_alignment && !params.skip_qc && !params.skip_preseq) {
         PRESEQ_LCEXTRAP (
             ch_genome_bam
@@ -522,11 +531,12 @@ workflow RNASEQ {
         ch_preseq_multiqc    = PRESEQ_LCEXTRAP.out.ccurve
         ch_software_versions = ch_software_versions.mix(PRESEQ_LCEXTRAP.out.version.first().ifEmpty(null))
     }
-
+    */
     //
     // SUBWORKFLOW: Mark duplicate reads
     //
     ch_markduplicates_multiqc = Channel.empty()
+    /*
     if (!params.skip_alignment && !params.skip_markduplicates) {
         MARK_DUPLICATES_PICARD (
             ch_genome_bam
@@ -542,10 +552,12 @@ workflow RNASEQ {
         }
         ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_version.first().ifEmpty(null))
     }
-
+    */
+    
     //
     // MODULE: STRINGTIE
     //
+    /*
     if (!params.skip_alignment && !params.skip_stringtie) {
         STRINGTIE (
             ch_genome_bam,
@@ -553,11 +565,12 @@ workflow RNASEQ {
         )
         ch_software_versions = ch_software_versions.mix(STRINGTIE.out.version.first().ifEmpty(null))
     }
-
+    */
     //
     // MODULE: Feature biotype QC using featureCounts
     //
     ch_featurecounts_multiqc = Channel.empty()
+    /*
     if (!params.skip_alignment && !params.skip_qc && !params.skip_biotype_qc && biotype) {
 
         PREPARE_GENOME
@@ -585,10 +598,12 @@ workflow RNASEQ {
         )
         ch_featurecounts_multiqc = MULTIQC_CUSTOM_BIOTYPE.out.tsv
     }
-
+    */
+    
     //
     // MODULE: Genome-wide coverage with BEDTools
     //
+    /*
     if (!params.skip_alignment && !params.skip_bigwig) {
 
         BEDTOOLS_GENOMECOV (
@@ -610,7 +625,7 @@ workflow RNASEQ {
             PREPARE_GENOME.out.chrom_sizes
         )
     }
-
+    */
     //
     // MODULE: Downstream QC steps
     //
@@ -624,6 +639,7 @@ workflow RNASEQ {
     ch_readdistribution_multiqc   = Channel.empty()
     ch_readduplication_multiqc    = Channel.empty()
     ch_fail_strand_multiqc        = Channel.empty()
+    /*
     if (!params.skip_alignment && !params.skip_qc) {
         if (!params.skip_qualimap) {
             QUALIMAP_RNASEQ (
@@ -670,6 +686,7 @@ workflow RNASEQ {
             .set { ch_fail_strand_multiqc }
         }
     }
+    */
 
     //
     // SUBWORKFLOW: Pseudo-alignment and quantification with Salmon
@@ -683,9 +700,9 @@ workflow RNASEQ {
         QUANTIFY_SALMON (
             ch_trimmed_reads,
             //ch_fastqc_reads.flatMap { it[1] },
-            PREPARE_GENOME.out.salmon_index,
+            salmon_index,
             ch_dummy_file,
-            PREPARE_GENOME.out.gtf,
+            gtf,
             false,
             params.salmon_quant_libtype ?: ''
         )
