@@ -694,12 +694,18 @@ workflow RNASEQ {
     ch_salmon_multiqc                   = Channel.empty()
     ch_pseudoaligner_pca_multiqc        = Channel.empty()
     ch_pseudoaligner_clustering_multiqc = Channel.empty()
-    //ch_fastqc_reads = ch_trimmed_reads.join(FASTQC_UMITOOLS_TRIMGALORE.out.fastqc_zip)
+    
+    ch_trimmed_reads.subscribe{ it -> println "RNASEQ:trimmed_reads : $it"}
+    ch_fastqc_reads = ch_trimmed_reads.cross(FASTQC_UMITOOLS_TRIMGALORE.out.fastqc_zip)
+    
+    ch_fastqc_reads.subscribe{ it -> println "RNASEQ:fastqc_reads : $it"}
+    ch_fastqc_reads.flatMap {  it -> [it[0]] }.subscribe{ it -> println "RNASEQ:fastqc_reads[0] : $it"}
+    ch_fastqc_reads.flatMap { it -> [it[1]] }.subscribe{ it -> println "RNASEQ:trimmed_reads[1] : $it"}
     
     if (params.pseudo_aligner == 'salmon') {
         QUANTIFY_SALMON (
-            ch_trimmed_reads,
-            //ch_fastqc_reads.flatMap { it[1] },
+            ch_fastqc_reads.flatMap { it -> [it[0]] },
+            ch_fastqc_reads.flatMap { it -> [it[1]] },
             salmon_index,
             ch_dummy_file,
             gtf,

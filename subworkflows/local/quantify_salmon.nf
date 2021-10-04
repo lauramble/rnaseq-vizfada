@@ -19,6 +19,7 @@ include { SALMON_SUMMARIZEDEXPERIMENT as SALMON_SE_GENE
 workflow QUANTIFY_SALMON {
     take:
     reads            // channel: [ val(meta), [ reads ] ]
+    fastqc
     index            // channel: /path/to/salmon/index/
     transcript_fasta // channel: /path/to/transcript.fasta
     gtf              // channel: /path/to/genome.gtf
@@ -30,6 +31,7 @@ workflow QUANTIFY_SALMON {
     //
     // Quantify and merge counts across samples
     //
+    reads.subscribe{ it -> println "QUANTIFY_SALMON:reads : $it" }
     SALMON_QUANT        ( reads, index, gtf, transcript_fasta, alignment_mode, lib_type )
     SALMON_TX2GENE      ( SALMON_QUANT.out.results.collect{it[1]}, gtf )
     SALMON_TXIMPORT     ( SALMON_QUANT.out.results.collect{it[1]}, SALMON_TX2GENE.out.collect() )

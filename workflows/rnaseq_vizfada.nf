@@ -51,6 +51,10 @@ def rsem_preparereference_options = modules['rsem_preparereference']
 include { GET_FAANG } from '../modules/local/get_faang' addParams(ids: params.ids)
 //include { FLOW_MANAGER } from '../modules/local/flow_manager'
 include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome' addParams(outdir: "${params.full_index}",
+                                                                                 salmon_index: params.salmon_index,
+                                                                                 rsem_index: params.rsem_index,
+                                                                                 fasta: params.fasta,
+                                                                                 gtf: params.gtf,
                                                                                  rsem_index_options: rsem_preparereference_options,
                                                                                  salmon_index_options: salmon_index_options )
 //include { FETCH_AND_RNASEQ } from './fetch_and_rnaseq' addParams( input: params.input, index: "${params.index}/${params.fspecies}" )

@@ -219,11 +219,11 @@ if __name__ == "__main__":
 
     # GET DATA
     experiments = get_from_faang_api(
-        'http://data.faang.org/api/experiment/_search', post_data=post_experiment, verbose=True)
+        'https://data.faang.org/api/experiment/_search', post_data=post_experiment, verbose=True)
     files = get_from_faang_api(
-        'http://data.faang.org/api/file/_search', post_data=post_files, verbose=True)
+        'https://data.faang.org/api/file/_search', post_data=post_files, verbose=True)
     specimens = get_from_faang_api(
-        'http://data.faang.org/api/specimen/_search', post_data=post_specimens, verbose=True)
+        'https://data.faang.org/api/specimen/_search', post_data=post_specimens, verbose=True)
 
     # MATCH INPUT AND DATA
 

@@ -4,7 +4,7 @@
 ========================================================================================
 */
 
-params.index = './index'
+//params.index = './index'
 //def FASTA = file("${params.index}/*.fa")[0]
 //def GTF = file("${params.index}/*.gtf")[0]
 
