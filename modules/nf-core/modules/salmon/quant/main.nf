@@ -18,7 +18,14 @@ process SALMON_QUANT {
         container "quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0"
     }
     
-    afterScript "ls -l *.fastq.gz & ls -l *.fastq.gz | grep -- '->' | sed -e's/.*-> //' | xargs rm"
+    afterScript "if [ ${params.keep_fastq} == 'false' ];\
+                 then \
+                    ls -l *.fastq.gz & \
+                    ls -l *.fastq.gz | \
+                    grep -- '->' | \
+                    sed -e's/.*-> //' | \
+                    xargs rm;\
+                 fi;"
 
     input:
     tuple val(meta), path(reads)
