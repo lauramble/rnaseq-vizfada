@@ -18,7 +18,14 @@ process CAT_FASTQ {
         container "biocontainers/biocontainers:v1.2.0_cv1"
     }
     
-    afterScript "ls -l *.fastq.gz & ls -l *.fastq.gz | grep -- '->' | sed -e's/.*-> //' | xargs rm"
+    afterScript "if [ ${params.keep_fastq} == 'false' ];\
+                 then \
+                    ls -l *.fastq.gz & \
+                    ls -l *.fastq.gz | \
+                    grep -- '->' | \
+                    sed -e's/.*-> //' | \
+                    xargs rm;\
+                 fi;"
 
     input:
     tuple val(meta), path(reads)
